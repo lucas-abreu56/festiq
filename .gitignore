@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js & Build
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---------------------------------------------------------------------------
+# 1. Handoff e planos de sessão. SEMPRE.
+# ---------------------------------------------------------------------------
+# Estado operacional, não documentação do projeto — o que é documentação vive em
+# docs/ e é versionado. Ignore o PADRÃO, não o nome do arquivo.
+*.local.md
+
+# ---------------------------------------------------------------------------
+# 2. Config do Antigravity IDE nesta máquina. SEMPRE.
+# ---------------------------------------------------------------------------
+/.claude/
+/.gemini/
+
+# ---------------------------------------------------------------------------
+# 3. Ambiente — chaves e segredos protegidos.
+# ---------------------------------------------------------------------------
+.env*
+# ...menos o exemplo, que só serve se for versionado.
+!.env.example
+
+# ---------------------------------------------------------------------------
+# 4. Artefatos de plataforma & OS
+# ---------------------------------------------------------------------------
+.vercel
+.DS_Store
+Thumbs.db
+*.pem
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
