@@ -1,0 +1,145 @@
+export interface SpotifyArtist {
+  id: string;
+  name: string;
+  genres: string[];
+  popularity: number; // 0 a 100
+  images: { url: string; height?: number; width?: number }[];
+  external_urls: { spotify: string };
+}
+
+export const MOCK_ARTISTS: SpotifyArtist[] = [
+  // Headliners em potencial (Top 3)
+  {
+    id: "art-01",
+    name: "Red Hot Chili Peppers",
+    genres: ["rock", "alternative rock", "funk rock"],
+    popularity: 88,
+    images: [{ url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/0L8ExT028jH3ddEcZwqJJ5" },
+  },
+  {
+    id: "art-02",
+    name: "Billie Eilish",
+    genres: ["pop", "art pop", "electropop"],
+    popularity: 94,
+    images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/6qqNVTkY8uBg9cP3Jd7DAH" },
+  },
+  {
+    id: "art-03",
+    name: "Tyler, The Creator",
+    genres: ["hip hop", "rap", "neo-soul"],
+    popularity: 91,
+    images: [{ url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/4V8LLVI7PbaPR0K2TGSFFN" },
+  },
+
+  // Sub-headliners & nomes longos/curtos desafiadores
+  {
+    id: "art-04",
+    name: "King Gizzard & The Lizard Wizard",
+    genres: ["psychedelic rock", "garage rock", "indie"],
+    popularity: 68,
+    images: [{ url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/6ScJM1B4C9yFz4aXg4E26N" },
+  },
+  {
+    id: "art-05",
+    name: "SZA",
+    genres: ["r&b", "pop", "neo soul"],
+    popularity: 92,
+    images: [{ url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/7tYKF4w9nC0nq9CsPZTHte" },
+  },
+  {
+    id: "art-06",
+    name: "Arctic Monkeys",
+    genres: ["indie rock", "garage rock", "rock"],
+    popularity: 89,
+    images: [{ url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/7Ln80tUS6He07XvHI8qqHH" },
+  },
+  {
+    id: "art-07",
+    name: "Baco Exu do Blues",
+    genres: ["brazilian hip hop", "rap nacional", "mpb"],
+    popularity: 78,
+    images: [{ url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/3K2zYhK8Xw0qNn9u7aG8x9" },
+  },
+  {
+    id: "art-08",
+    name: "Lorde",
+    genres: ["art pop", "indie pop", "pop"],
+    popularity: 82,
+    images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/163tK9Wjr9P9DmM0660qix" },
+  },
+  {
+    id: "art-09",
+    name: "Caetano Veloso & Gilberto Gil",
+    genres: ["mpb", "tropicalia", "brazilian"],
+    popularity: 76,
+    images: [{ url: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/7A70s9sN6b5P7p4o0p6X6N" },
+  },
+  {
+    id: "art-10",
+    name: "Alok",
+    genres: ["electronic", "edm", "brazilian edm"],
+    popularity: 83,
+    images: [{ url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/0NGAZxHanS9e0iNHg9fK6M" },
+  },
+  {
+    id: "art-11",
+    name: "The Smashing Pumpkins",
+    genres: ["alternative rock", "grunge", "rock"],
+    popularity: 77,
+    images: [{ url: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/40Yq4vz9992QIjhqbODaz9" },
+  },
+  {
+    id: "art-12",
+    name: "Chitãozinho & Xororó",
+    genres: ["sertanejo", "sertanejo raiz", "brazilian"],
+    popularity: 74,
+    images: [{ url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400" }],
+    external_urls: { spotify: "https://open.spotify.com/artist/4X9Nq8Z6N7g0bK2P4o9P0P" },
+  },
+
+  // Undercard — Linhas de apoio variadas
+  { id: "art-13", name: "Dua Lipa", genres: ["pop", "dance pop"], popularity: 90, images: [], external_urls: { spotify: "" } },
+  { id: "art-14", name: "Kendrick Lamar", genres: ["hip hop", "rap", "west coast rap"], popularity: 93, images: [], external_urls: { spotify: "" } },
+  { id: "art-15", name: "Tame Impala", genres: ["psychedelic pop", "indie", "rock"], popularity: 85, images: [], external_urls: { spotify: "" } },
+  { id: "art-16", name: "Liniker", genres: ["mpb", "soul", "brazilian pop"], popularity: 73, images: [], external_urls: { spotify: "" } },
+  { id: "art-17", name: "Foster the People", genres: ["indie pop", "alternative rock"], popularity: 75, images: [], external_urls: { spotify: "" } },
+  { id: "art-18", name: "Criolo", genres: ["brazilian hip hop", "mpb", "samba"], popularity: 71, images: [], external_urls: { spotify: "" } },
+  { id: "art-19", name: "RÜFÜS DU SOL", genres: ["electronic", "indie dance"], popularity: 80, images: [], external_urls: { spotify: "" } },
+  { id: "art-20", name: "Marina Sena", genres: ["mpb", "brazilian pop", "indie"], popularity: 74, images: [], external_urls: { spotify: "" } },
+  { id: "art-21", name: "System of a Down", genres: ["metal", "nu metal", "rock"], popularity: 84, images: [], external_urls: { spotify: "" } },
+  { id: "art-22", name: "Vintage Culture", genres: ["electronic", "brazilian edm", "house"], popularity: 79, images: [], external_urls: { spotify: "" } },
+  { id: "art-23", name: "Phoebe Bridgers", genres: ["indie pop", "folk", "indie"], popularity: 81, images: [], external_urls: { spotify: "" } },
+  { id: "art-24", name: "Jorge & Mateus", genres: ["sertanejo", "sertanejo universitario"], popularity: 85, images: [], external_urls: { spotify: "" } },
+  { id: "art-25", name: "Beck", genres: ["alternative rock", "indie", "anti-folk"], popularity: 72, images: [], external_urls: { spotify: "" } },
+  { id: "art-26", name: "Djavan", genres: ["mpb", "samba", "brazilian jazz"], popularity: 78, images: [], external_urls: { spotify: "" } },
+  { id: "art-27", name: "Charli xcx", genres: ["hyperpop", "pop", "electropop"], popularity: 88, images: [], external_urls: { spotify: "" } },
+  { id: "art-28", name: "Duda Beat", genres: ["mpb", "indie pop", "tropical"], popularity: 69, images: [], external_urls: { spotify: "" } },
+  { id: "art-29", name: "Deftones", genres: ["nu metal", "alternative metal", "shoegaze"], popularity: 82, images: [], external_urls: { spotify: "" } },
+  { id: "art-30", name: "Chet Faker", genres: ["indie r&b", "electronic", "downtempo"], popularity: 67, images: [], external_urls: { spotify: "" } },
+  { id: "art-31", name: "Silva", genres: ["mpb", "indie pop"], popularity: 68, images: [], external_urls: { spotify: "" } },
+  { id: "art-32", name: "Disclosure", genres: ["house", "electronic", "dance pop"], popularity: 78, images: [], external_urls: { spotify: "" } },
+  { id: "art-33", name: "Lagum", genres: ["brazilian pop", "indie"], popularity: 71, images: [], external_urls: { spotify: "" } },
+  { id: "art-34", name: "Odesza", genres: ["electronic", "chillwave"], popularity: 75, images: [], external_urls: { spotify: "" } },
+  { id: "art-35", name: "Gilsons", genres: ["mpb", "samba-pop"], popularity: 72, images: [], external_urls: { spotify: "" } },
+  { id: "art-36", name: "Gorillaz", genres: ["alternative hip hop", "art pop", "rock"], popularity: 83, images: [], external_urls: { spotify: "" } },
+  { id: "art-37", name: "Tim Bernardes", genres: ["mpb", "indie folk"], popularity: 65, images: [], external_urls: { spotify: "" } },
+  { id: "art-38", name: "Kaytranada", genres: ["electronic", "neo soul", "hip hop"], popularity: 76, images: [], external_urls: { spotify: "" } },
+  { id: "art-39", name: "Luedji Luna", genres: ["mpb", "afrobeat"], popularity: 64, images: [], external_urls: { spotify: "" } },
+  { id: "art-40", name: "Mac DeMarco", genres: ["indie rock", "slacker rock"], popularity: 77, images: [], external_urls: { spotify: "" } },
+  { id: "art-41", name: "Rubel", genres: ["mpb", "indie folk"], popularity: 66, images: [], external_urls: { spotify: "" } },
+  { id: "art-42", name: "Justice", genres: ["electro house", "french indie"], popularity: 73, images: [], external_urls: { spotify: "" } },
+  { id: "art-43", name: "BK'", genres: ["brazilian hip hop", "rap nacional"], popularity: 74, images: [], external_urls: { spotify: "" } },
+  { id: "art-44", name: "BaianaSystem", genres: ["afro-rock", "sound system", "bass"], popularity: 69, images: [], external_urls: { spotify: "" } },
+  { id: "art-45", name: "Glass Animals", genres: ["indie pop", "psychedelic pop"], popularity: 79, images: [], external_urls: { spotify: "" } },
+];

@@ -1,0 +1,11 @@
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const response = NextResponse.redirect(baseUrl);
+
+  response.cookies.delete("spotify_access_token");
+  response.cookies.delete("spotify_refresh_token");
+
+  return response;
+}
