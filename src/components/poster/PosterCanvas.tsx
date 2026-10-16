@@ -12,6 +12,8 @@ interface PosterCanvasProps {
 
 export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
   ({ lineup, exportMode = false }, ref) => {
+    const isHorizontal = lineup.aspectRatio === "16:9";
+
     const renderTheme = () => {
       switch (lineup.themeId) {
         case "lolla":
@@ -28,25 +30,32 @@ export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
     };
 
     if (exportMode) {
-      // Nó de renderização exato para captura em 1080x1920 (escondido fora da tela durante preview)
+      // Nó de exportação exato para captura em alta resolução
+      const width = isHorizontal ? 1920 : 1080;
+      const height = isHorizontal ? 1080 : 1920;
+
       return (
         <div
           ref={ref}
           id="festiq-poster-export-root"
-          className="fixed -left-[9999px] top-0 w-[1080px] h-[1920px] overflow-hidden poster-export-node"
-          style={{ width: "1080px", height: "1920px" }}
+          className="fixed -left-[9999px] top-0 overflow-hidden poster-export-node"
+          style={{ width: `${width}px`, height: `${height}px` }}
         >
           {renderTheme()}
         </div>
       );
     }
 
-    // Modo de visualização responsiva (9:16) no navegador
+    // Modo de visualização no navegador (9:16 ou 16:9)
     return (
       <div
         ref={ref}
         id="festiq-poster-preview"
-        className="w-full max-w-[380px] sm:max-w-[420px] aspect-[9/16] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-brand-border/60 transition-all duration-300"
+        className={`w-full transition-all duration-300 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] border border-brand-border/80 ${
+          isHorizontal
+            ? "max-w-[680px] aspect-[16/9]"
+            : "max-w-[360px] sm:max-w-[390px] aspect-[9/16]"
+        }`}
       >
         {renderTheme()}
       </div>

@@ -3,6 +3,7 @@ import { SpotifyArtist, MOCK_ARTISTS } from "./mock-artists";
 export type FestivalThemeId = "lolla" | "rock" | "tropical" | "retro";
 export type CreationMode = "taste" | "genre" | "popularity";
 export type TimeRange = "short_term" | "medium_term" | "long_term";
+export type PosterAspectRatio = "9:16" | "16:9";
 
 export interface FestivalDay {
   dayLabel: string;
@@ -18,6 +19,7 @@ export interface FestivalLineup {
   themeId: FestivalThemeId;
   mode: CreationMode;
   timeRange: TimeRange;
+  aspectRatio: PosterAspectRatio;
   days: FestivalDay[];
   singleStageHeadliners: SpotifyArtist[];
   singleStageSubHeadliners: SpotifyArtist[];
@@ -78,6 +80,7 @@ export function buildFestivalLineup({
   themeId = "lolla",
   mode = "taste",
   timeRange = "medium_term",
+  aspectRatio = "9:16",
   targetGenre,
 }: {
   artists: SpotifyArtist[];
@@ -85,6 +88,7 @@ export function buildFestivalLineup({
   themeId?: FestivalThemeId;
   mode?: CreationMode;
   timeRange?: TimeRange;
+  aspectRatio?: PosterAspectRatio;
   targetGenre?: string;
 }): FestivalLineup {
   let processed = deduplicateArtists(artists.length > 0 ? artists : MOCK_ARTISTS);
@@ -152,10 +156,11 @@ export function buildFestivalLineup({
     themeId,
     mode,
     timeRange,
+    aspectRatio,
     days,
     singleStageHeadliners: [h1, h2, h3],
     singleStageSubHeadliners: processed.slice(3, 11),
-    singleStageUndercard: processed.slice(11, 42),
+    singleStageUndercard: processed.slice(11, 45),
   };
 }
 
