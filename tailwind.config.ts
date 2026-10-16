@@ -10,16 +10,29 @@ const config: Config = {
     extend: {
       aspectRatio: {
         "9/16": "9 / 16",
+        "16/9": "16 / 9",
       },
       colors: {
+        // Paleta Oficial do Design Bomb
+        bomb: {
+          bg: "#141414",
+          surface: "#1A1A1A",
+          border: "#282828",
+          lime: "#CEFF00",
+          pink: "#FF3EBA",
+          blue: "#4A60FF",
+          green: "#31A362",
+          chalk: "#F7F6EB",
+          muted: "rgba(247, 246, 235, 0.6)",
+        },
         brand: {
-          bg: "#0A0D14",
-          surface: "#121824",
-          border: "#1F293D",
-          text: "#F8FAFC",
-          muted: "#94A3B8",
-          accent: "#1DB954", // Spotify Green
-          accentHover: "#1ED760",
+          bg: "#141414",
+          surface: "#1A1A1A",
+          border: "#282828",
+          text: "#F7F6EB",
+          muted: "rgba(247, 246, 235, 0.65)",
+          accent: "#CEFF00", // Acid Lime como cor de ação
+          accentHover: "#b8e600",
         },
         theme: {
           lolla: {
@@ -53,8 +66,10 @@ const config: Config = {
         },
       },
       fontFamily: {
+        frama: ["'PP Frama Black Italic'", "'PP Frama Bold'", "var(--font-oswald)", "sans-serif"],
+        framaExtra: ["'PP Frama Extrabold Italic'", "sans-serif"],
         sans: ["var(--font-inter)", "sans-serif"],
-        display: ["var(--font-oswald)", "Impact", "sans-serif"],
+        display: ["var(--font-oswald)", "'PP Frama Bold'", "Impact", "sans-serif"],
         serif: ["var(--font-playfair)", "serif"],
         mono: ["var(--font-mono)", "monospace"],
       },

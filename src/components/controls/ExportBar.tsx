@@ -61,42 +61,44 @@ export const ExportBar: React.FC<ExportBarProps> = ({ festivalName, aspectRatio 
   };
 
   return (
-    <div className="w-full bg-[#0E121D]/90 border border-[#1E2638] p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl backdrop-blur-xl">
-      <div className="flex items-center gap-2.5 text-xs font-mono text-brand-muted">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] animate-pulse" />
-        <span className="text-white/80 font-bold">{resolutionText}</span>
+    <div className="w-full bg-[#161616] border border-[#2B2B2B] p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl">
+      <div className="flex items-center gap-2.5 text-xs font-mono">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#CEFF00] animate-pulse" />
+        <span className="text-[#F7F6EB] font-bold">{resolutionText}</span>
       </div>
 
       <div className="flex items-center gap-3 w-full sm:w-auto">
         {/* Botão Compartilhar */}
         <button
+          type="button"
           onClick={handleShare}
           disabled={isExporting}
-          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-[#141A29] border border-[#1E2638] hover:border-[#1DB954] text-white font-mono text-xs font-bold rounded-xl transition-all disabled:opacity-50 active:scale-95"
+          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-[#1E1E1E] border border-[#2B2B2B] hover:border-[#FF3EBA] hover:text-[#FF3EBA] text-white font-mono text-xs font-bold rounded-xl transition-all disabled:opacity-50 active:scale-95"
         >
-          <Share2 className="w-4 h-4 text-[#1DB954]" />
+          <Share2 className="w-4 h-4 text-[#FF3EBA]" />
           <span>Compartilhar</span>
         </button>
 
-        {/* Botão Baixar Pôster */}
+        {/* Botão Baixar Pôster em HQ */}
         <button
+          type="button"
           onClick={handleDownload}
           disabled={isExporting}
-          className="flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-7 py-3 bg-[#1DB954] hover:bg-[#1ed760] text-black font-mono text-xs font-black rounded-xl transition-all shadow-[0_0_25px_rgba(29,185,84,0.35)] disabled:opacity-50 active:scale-95"
+          className="flex-1 sm:flex-none flex items-center justify-center gap-2.5 px-7 py-3 bg-[#CEFF00] hover:bg-[#b8e600] text-[#141414] font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-[0_0_25px_rgba(206,255,0,0.35)] disabled:opacity-50 active:scale-95"
         >
           {isExporting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-black" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#141414]" />
               <span>Renderizando PNG...</span>
             </>
           ) : exportSuccess ? (
             <>
-              <CheckCircle2 className="w-4 h-4 text-black" />
+              <CheckCircle2 className="w-4 h-4 text-[#141414]" />
               <span>Baixado com Sucesso!</span>
             </>
           ) : (
             <>
-              <Download className="w-4 h-4 text-black" />
+              <Download className="w-4 h-4 text-[#141414]" />
               <span>Baixar Pôster em HQ</span>
             </>
           )}

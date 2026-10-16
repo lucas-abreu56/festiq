@@ -2,17 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fontes Oficiais do Design Bomb (PP Frama) */
+@font-face {
+  font-family: "PP Frama Extrabold Italic";
+  src: url("https://framerusercontent.com/assets/lKs8dLKV0WRt0VrtfvORXFoY.woff2");
+  font-display: swap;
+  font-style: italic;
+  font-weight: 800;
+}
+
+@font-face {
+  font-family: "PP Frama Black Italic";
+  src: url("https://framerusercontent.com/assets/28Z2hs2GcwnMl602hOg4rszmxIc.woff2");
+  font-display: swap;
+  font-style: italic;
+  font-weight: 900;
+}
+
+@font-face {
+  font-family: "PP Frama Bold";
+  src: url("https://framerusercontent.com/assets/pVoJ1EmRcoahSj1z89w2DzIYI.woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "PP Frama Bold Italic";
+  src: url("https://framerusercontent.com/assets/enD8HkVqjrlXuwDm6KmS5CQBNw.woff2");
+  font-display: swap;
+  font-style: italic;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "PP Frama Regular";
+  src: url("https://framerusercontent.com/assets/5nYVVC3QCkcPOZ07DOoiY7k4O0.woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
 :root {
-  --background: #0A0D14;
-  --foreground: #F8FAFC;
+  --background: #141414;
+  --foreground: #F7F6EB;
+  --bomb-lime: #CEFF00;
+  --bomb-pink: #FF3EBA;
+  --bomb-blue: #4A60FF;
+  --bomb-green: #31A362;
+  --bomb-chalk: #F7F6EB;
+  --bomb-bg: #141414;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
   min-height: 100dvh;
+}
+
+/* Custom Selection com o Verde/Amarelo Ácido do Design Bomb */
+::selection {
+  background-color: #CEFF00;
+  color: #141414;
 }
 
 /* Prevenção de quebra do canvas durante exportação */
@@ -21,4 +74,18 @@ body {
   user-select: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Estilos de Ticket e Badges do Design Bomb */
+.bomb-ticket {
+  background-color: var(--bomb-bg);
+  border: 1px solid rgba(247, 246, 235, 0.15);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bomb-ticket:hover {
+  border-color: rgba(247, 246, 235, 0.35);
+  transform: translateY(-1px);
 }
