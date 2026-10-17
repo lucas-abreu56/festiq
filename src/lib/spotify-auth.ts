@@ -20,7 +20,7 @@ export function generateCodeChallenge(verifier: string): string {
 
 export function getSpotifyAuthUrl(verifier: string, state: string): string {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback`;
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000"}/api/auth/callback`;
   const codeChallenge = generateCodeChallenge(verifier);
 
   const params = new URLSearchParams({
@@ -39,7 +39,7 @@ export function getSpotifyAuthUrl(verifier: string, state: string): string {
 export async function exchangeCodeForTokens(code: string, verifier: string) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback`;
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000"}/api/auth/callback`;
 
   const body = new URLSearchParams({
     grant_type: "authorization_code",

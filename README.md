@@ -7,16 +7,16 @@ Aplicação web responsiva que transforma preferências musicais e estatísticas
 ## Recursos Principais
 
 - **Conexão Segura com Spotify (OAuth 2.0 PKCE):** Coleta dados dos artistas mais tocados nos períodos de 4 semanas, 6 meses ou todo o histórico.
-- **Modos de Lineup:**
-  - *Meu Gosto Musical:* Ranking fiel com headliners, sub-headliners e undercard.
-  - *Por Gênero Musical:* Lineups temáticos dedicados (Rock, Pop, Indie, Eletrônica, Sertanejo, etc.).
-  - *Por Popularidade:* Destaques ordenados pelo índice de popularidade musical.
-- **4 Temas Visuais Exclusivos:**
-  1. *Planeta Tropical* (inspirado no Planeta Atlântida)
-  2. *Indie Waves* (inspirado no Lollapalooza Brasil)
-  3. *Stadium Rock* (inspirado no Rock in Rio)
-  4. *Festival Retrô* (estética tipográfica vintage / letterpress)
-- **Exportação em Alta Resolução:** Geração instantânea de imagem PNG (1080x1920) e suporte à Web Share API nativa.
+- **5 Temas Visuais Exclusivos (Tributos Criativos):**
+  1. *Indie Waves* (homenagem gráfica ao Lollapalooza Brasil, com divisão bicromática e undercard equalizado)
+  2. *Planeta Tropical* (homenagem ao Planeta Atlântida com tipografia oficial, colunas ilustradas e letra 3D dinâmica A–Z)
+  3. *Forestfest* (estética de floresta inspirada no Festify com balanceamento por comprimento de nomes)
+  4. *Impresso '85* (grade de 10 dias jornalística estilo Rock in Rio 1985 / vintage letterpress)
+  5. *C6 Minimal* (íris concêntrica multicolorida de 378 pontos com lineup A a Z contínuo)
+- **Formatos Duplos:** Suporte nativo para **9:16 (Stories/Reels - 1080 × 1920 px)** e **1:1 (Feed/Quadrado - 1080 × 1080 px)**.
+- **Motor Tipográfico Adaptativo (Zero-Truncate Rule):** Algoritmo que quebra e equaliza nomes longos em 2 linhas sem nunca cortar caracteres (`truncate`/`...`), mantendo 100% dos nomes das bandas íntegros.
+- **Retratos Reais de Artistas:** Integração com a API da Deezer para exibir fotos reais dos artistas do topo do lineup.
+- **Exportação em Alta Resolução:** Renderização local instantânea em PNG e suporte à Web Share API nativa.
 - **Sem Cadastro:** Não exige criação de conta para criar ou baixar o pôster.
 
 ---
@@ -37,23 +37,24 @@ Edite o arquivo `.env.local`:
 ```env
 SPOTIFY_CLIENT_ID=seu_client_id_aqui
 SPOTIFY_CLIENT_SECRET=seu_client_secret_aqui
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
 ```
 
-> No painel do Spotify Developer Dashboard, adicione a Redirect URI:  
-> `http://localhost:3000/api/auth/callback`
+> No painel do Spotify Developer Dashboard, adicione a Redirect URI (o Spotify exige o IP explícito 127.0.0.1 em vez de localhost):  
+> `http://127.0.0.1:3000/api/auth/callback`
 
 ### 3. Instalar Dependências e Executar
 ```bash
 npm install
 npm run dev
 ```
-Acesse `http://localhost:3000`.
+Acesse `http://127.0.0.1:3000`.
 
 ---
 
-## Atribuições e Licenças
+## Atribuições, Privacidade e Isenção Legal
 
-- **Spotify Web API**: Dados musicais fornecidos pela Spotify Web API sob seus termos de desenvolvedor. O Festiq não é afiliado, patrocinado ou endossado pelo Spotify AB.
-- **Temas de Festivais**: As identidades visuais são tributos criativos originais da equipe Festiq. Nomes de festivais e palcos de terceiros são mencionados de forma puramente descritiva/homenagem cultural.
-- **Licença**: MIT.
+- **Spotify Web API**: Dados musicais consumidos exclusivamente em tempo de execução via Spotify Web API. O Festiq não é afiliado, patrocinado ou endossado pelo Spotify AB. Todas as marcas e marcas registradas relacionadas ao Spotify pertencem aos seus respectivos proprietários.
+- **Privacidade e Dados Efêmeros**: O Festiq não possui banco de dados persistente e não armazena históricos de escuta ou credenciais. O token OAuth PKCE é mantido estritamente em cookies protegidos de sessão temporária no cliente.
+- **Identidades Visuais & Propriedade Intelectual**: Os modelos visuais são homenagens e paródias de design inspiradas na cultura de grandes festivais de música. Não utilizam logotipos oficiais de patrocinadores nem sugerem parceria comercial.
+- **Licença de Código Aberto**: Distribuído sob a [Licença MIT](LICENSE). Consulte o arquivo `LICENSE` para termos completos de isenção de responsabilidade.

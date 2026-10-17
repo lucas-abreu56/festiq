@@ -12,7 +12,7 @@ Instruções para configurar o ambiente de desenvolvimento local, o painel do Sp
    - **App name:** `Festiq`
    - **App description:** `Gerador de lineups e pôsteres de festivais de música`
    - **Redirect URIs:**
-     - Desenvolvimento: `http://localhost:3000/api/auth/callback`
+     - Desenvolvimento: `http://127.0.0.1:3000/api/auth/callback` *(O Spotify não aceita mais 'localhost', use 127.0.0.1)*
      - Produção (futuro): `https://seu-dominio.vercel.app/api/auth/callback`
    - **Which API/SDKs are you planning to use?:** Marque `Web API`.
 4. Salve o aplicativo.
@@ -30,7 +30,7 @@ Instruções para configurar o ambiente de desenvolvimento local, o painel do Sp
    ```env
    SPOTIFY_CLIENT_ID=<seu-client-id>
    SPOTIFY_CLIENT_SECRET=<seu-client-secret>
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
    ```
 2. Instale as dependências:
    ```powershell
