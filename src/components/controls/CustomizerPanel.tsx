@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FestivalThemeId, CreationMode, TimeRange, PosterAspectRatio } from "@/lib/lineup-engine";
-import { Sparkles, Music2, Flame, Shuffle, Smartphone, Monitor } from "lucide-react";
+import { Sparkles, Music2, Flame, Shuffle, Smartphone, Square } from "lucide-react";
 import { OptionWheel } from "@/components/reactbits/OptionWheel";
 
 interface CustomizerPanelProps {
@@ -22,11 +22,35 @@ interface CustomizerPanelProps {
   userName?: string;
 }
 
-const THEMES: { id: FestivalThemeId; name: string; tag: string; bg: string; text: string; badge: string }[] = [
-  { id: "lolla", name: "Indie Waves", tag: "Tributo ao Lollapalooza", bg: "bg-[#FFE800]", text: "text-black", badge: "bg-[#00E5FF] text-black" },
-  { id: "rock", name: "Stadium Rock", tag: "Tributo ao Rock in Rio", bg: "bg-[#0B0D14]", text: "text-white", badge: "bg-[#ED1C24] text-white" },
-  { id: "tropical", name: "Planeta Verão", tag: "Tributo ao Planeta", bg: "bg-[#0B192C]", text: "text-white", badge: "bg-[#FFE600] text-black" },
-  { id: "retro", name: "Imprensa Retrô", tag: "Prensa Tipográfica 70s", bg: "bg-[#F5EBE1]", text: "text-[#1C1917]", badge: "bg-[#7F1D1D] text-white" },
+const THEMES: { id: FestivalThemeId; name: string; tag: string; bg: string; text: string }[] = [
+  {
+    id: "lolla",
+    name: "Indie Waves",
+    tag: "Tributo ao Lollapalooza",
+    bg: "bg-gradient-to-r from-[#63CBD8] to-[#E2F018]",
+    text: "text-[#0D0D0D]",
+  },
+  {
+    id: "festify",
+    name: "Forestfest",
+    tag: "Tributo ao Festify",
+    bg: "bg-gradient-to-b from-[#FDE05D] to-white",
+    text: "text-[#2B6EF2]",
+  },
+  {
+    id: "tropical",
+    name: "Planeta Verão",
+    tag: "Tributo ao Planeta",
+    bg: "bg-[#0B192C]",
+    text: "text-[#FFE600]",
+  },
+  {
+    id: "retro",
+    name: "Imprensa Retrô",
+    tag: "Prensa Tipográfica 70s",
+    bg: "bg-[#F5EBE1]",
+    text: "text-[#7F1D1D]",
+  },
 ];
 
 const GENRES = ["rock", "pop", "indie", "hip hop", "electronic", "sertanejo", "mpb", "reggae", "metal"];
@@ -48,38 +72,42 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
   userName = "MEU",
 }) => {
   const quickSuggestions = [
+    "FESTIQ STUDIO",
+    "FORESTFEST 2026",
     `${userName.toUpperCase()}PALOOZA`,
-    `FESTIQ IN RIO`,
     `PLANETA ${userName.toUpperCase()}`,
-    `${userName.toUpperCase()} SESSIONS`,
   ];
 
   return (
     <div className="w-full space-y-6 bg-[#161616] border border-[#2B2B2B] p-6 rounded-2xl shadow-2xl">
-      {/* 1. Formato do Pôster (9:16 Stories vs 16:9 Panorâmico) */}
+      {/* 1. Formato do Pôster (9:16 Stories vs 1:1 Quadrado / Feed) */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
-            Formato de Exportação
+            Proporção do Pôster
           </span>
           <span className="text-[11px] font-mono text-[#CEFF00] font-bold">
-            {aspectRatio === "9:16" ? "Vertical (Stories/Reels 1080×1920)" : "Horizontal (Banner 1920×1080)"}
+            {aspectRatio === "9:16"
+              ? "Vertical · Stories/Reels (1080×1920)"
+              : "Quadrado · Feed/Festify (1080×1080)"}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => onAspectRatioChange("9:16")}
-            className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border transition-all ${
+            className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border transition-all active:scale-[0.97] ${
               aspectRatio === "9:16"
-                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_0_20px_rgba(206,255,0,0.3)] font-black"
+                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_8px_20px_rgba(206,255,0,0.25)] font-black"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white hover:border-[#404040]"
             }`}
           >
             <Smartphone className={`w-4 h-4 ${aspectRatio === "9:16" ? "text-[#141414]" : "text-[#CEFF00]"}`} />
             <div className="text-left">
-              <span className="block text-xs font-display font-bold uppercase tracking-wider">Vertical (9:16)</span>
-              <span className={`block text-[10px] font-mono ${aspectRatio === "9:16" ? "text-black/70" : "text-[#737373]"}`}>
+              <span className="block text-xs font-display font-bold uppercase tracking-wider">
+                Vertical (9:16)
+              </span>
+              <span className={`block text-[10px] font-mono ${aspectRatio === "9:16" ? "text-black/75" : "text-[#8A8A8A]"}`}>
                 1080 × 1920 px
               </span>
             </div>
@@ -87,18 +115,20 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
 
           <button
             type="button"
-            onClick={() => onAspectRatioChange("16:9")}
-            className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border transition-all ${
-              aspectRatio === "16:9"
-                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_0_20px_rgba(206,255,0,0.3)] font-black"
+            onClick={() => onAspectRatioChange("1:1")}
+            className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border transition-all active:scale-[0.97] ${
+              aspectRatio === "1:1"
+                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_8px_20px_rgba(206,255,0,0.25)] font-black"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white hover:border-[#404040]"
             }`}
           >
-            <Monitor className={`w-4 h-4 ${aspectRatio === "16:9" ? "text-[#141414]" : "text-[#CEFF00]"}`} />
+            <Square className={`w-4 h-4 ${aspectRatio === "1:1" ? "text-[#141414]" : "text-[#CEFF00]"}`} />
             <div className="text-left">
-              <span className="block text-xs font-display font-bold uppercase tracking-wider">Horizontal (16:9)</span>
-              <span className={`block text-[10px] font-mono ${aspectRatio === "16:9" ? "text-black/70" : "text-[#737373]"}`}>
-                1920 × 1080 px
+              <span className="block text-xs font-display font-bold uppercase tracking-wider">
+                Quadrado (1:1)
+              </span>
+              <span className={`block text-[10px] font-mono ${aspectRatio === "1:1" ? "text-black/75" : "text-[#8A8A8A]"}`}>
+                1080 × 1080 px
               </span>
             </div>
           </button>
@@ -107,47 +137,59 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
 
       {/* 2. Nome do Festival */}
       <div className="space-y-2.5">
-        <label className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
-          Nome do Festival
-        </label>
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="festival-name-input"
+            className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold"
+          >
+            Nome do Festival
+          </label>
+          <span className="text-[10px] font-mono text-[#A3A3A3]">
+            Padrão: FESTIQ STUDIO
+          </span>
+        </div>
         <div className="flex gap-2">
           <input
+            id="festival-name-input"
             type="text"
             value={festivalName}
             maxLength={32}
             onChange={(e) => onFestivalNameChange(e.target.value)}
-            className="flex-1 bg-[#1E1E1E] border border-[#2B2B2B] rounded-xl px-4 py-3 text-sm font-display font-bold uppercase tracking-wider text-white placeholder-[#525252] focus:outline-none focus:border-[#CEFF00] transition-colors"
-            placeholder="NOME DO SEU FESTIVAL"
+            className="flex-1 bg-[#1E1E1E] border border-[#2B2B2B] rounded-xl px-4 py-3 text-sm font-display font-bold uppercase tracking-wider text-white placeholder-[#737373] focus:outline-none focus:border-[#CEFF00] transition-colors"
+            placeholder="FESTIQ STUDIO (DIGITE PARA ALTERAR)"
           />
           <button
             type="button"
             onClick={onRegenerate}
             title="Sortear nova ordem do lineup"
-            className="px-4 bg-[#1E1E1E] border border-[#2B2B2B] hover:border-[#CEFF00] hover:text-[#CEFF00] rounded-xl text-[#A3A3A3] transition-all flex items-center justify-center active:scale-95"
+            className="px-4 bg-[#1E1E1E] border border-[#2B2B2B] hover:border-[#CEFF00] hover:text-[#CEFF00] rounded-xl text-[#A3A3A3] transition-all flex items-center justify-center active:scale-[0.97]"
           >
             <Shuffle className="w-4 h-4" />
           </button>
         </div>
         {/* Sugestões Rápidas em Estilo Ticket Badge */}
         <div className="flex flex-wrap gap-2 pt-1">
-          {quickSuggestions.map((sug) => (
-            <button
-              key={sug}
-              type="button"
-              onClick={() => onFestivalNameChange(sug)}
-              className="text-[11px] font-mono font-bold uppercase tracking-wider px-3 py-1 bg-[#1E1E1E] border border-[#2B2B2B] rounded-md text-[#A3A3A3] hover:text-[#141414] hover:bg-[#CEFF00] hover:border-[#CEFF00] transition-all"
-            >
-              {sug}
-            </button>
-          ))}
+          {quickSuggestions.map((sug) => {
+            const isDefault = sug === "FESTIQ STUDIO";
+            return (
+              <button
+                key={sug}
+                type="button"
+                onClick={() => onFestivalNameChange(isDefault ? "" : sug)}
+                className="text-[11px] font-mono font-bold uppercase tracking-wider px-3 py-1 bg-[#1E1E1E] border border-[#2B2B2B] rounded-md text-[#A3A3A3] hover:text-[#141414] hover:bg-[#CEFF00] hover:border-[#CEFF00] transition-all active:scale-[0.97]"
+              >
+                {sug}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* 3. Seleção de Tema Visual */}
       <div className="space-y-2.5">
-        <label className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
+        <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
           Tema Visual do Festival
-        </label>
+        </span>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {THEMES.map((t) => {
             const isSelected = themeId === t.id;
@@ -156,13 +198,15 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
                 key={t.id}
                 type="button"
                 onClick={() => onThemeChange(t.id)}
-                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all relative overflow-hidden ${
+                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all relative overflow-hidden active:scale-[0.97] ${
                   isSelected
-                    ? "border-[#CEFF00] ring-2 ring-[#CEFF00]/40 bg-[#1E1E1E] scale-[1.02] shadow-xl"
-                    : "border-[#2B2B2B] bg-[#1A1A1A] hover:border-[#404040] opacity-80 hover:opacity-100"
+                    ? "border-[#CEFF00] ring-2 ring-[#CEFF00]/40 bg-[#1E1E1E] shadow-xl"
+                    : "border-[#2B2B2B] bg-[#1A1A1A] hover:border-[#404040] opacity-85 hover:opacity-100"
                 }`}
               >
-                <div className={`w-full h-10 rounded-lg ${t.bg} border border-white/10 mb-2 flex items-center justify-center font-display font-black text-xs ${t.text} shadow-inner`}>
+                <div
+                  className={`w-full h-10 rounded-lg ${t.bg} border border-white/10 mb-2 flex items-center justify-center font-display font-black text-xs ${t.text} shadow-inner`}
+                >
                   FESTIQ
                 </div>
                 <span className="font-display font-black text-sm text-white leading-tight">
@@ -179,14 +223,14 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
 
       {/* 4. Modo do Lineup & ReactBits OptionWheel */}
       <div className="space-y-2.5">
-        <label className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
+        <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
           Algoritmo do Lineup
-        </label>
+        </span>
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => onModeChange("taste")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-mono font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-mono font-bold transition-all active:scale-[0.97] ${
               mode === "taste"
                 ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] font-black shadow-md"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white"
@@ -198,7 +242,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
           <button
             type="button"
             onClick={() => onModeChange("genre")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-mono font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-mono font-bold transition-all active:scale-[0.97] ${
               mode === "genre"
                 ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] font-black shadow-md"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white"
@@ -210,7 +254,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
           <button
             type="button"
             onClick={() => onModeChange("popularity")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-mono font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border text-xs font-mono font-bold transition-all active:scale-[0.97] ${
               mode === "popularity"
                 ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] font-black shadow-md"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white"
@@ -238,14 +282,14 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
 
       {/* 5. Período das Estatísticas */}
       <div className="space-y-2">
-        <label className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
+        <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
           Período das Estatísticas (Spotify)
-        </label>
+        </span>
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => onTimeRangeChange("short_term")}
-            className={`py-2 px-2 text-center rounded-xl border text-xs font-mono transition-all ${
+            className={`py-2 px-2 text-center rounded-xl border text-xs font-mono transition-all active:scale-[0.97] ${
               timeRange === "short_term"
                 ? "bg-[#282828] border-[#CEFF00] text-[#CEFF00] font-bold"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white"
@@ -256,7 +300,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
           <button
             type="button"
             onClick={() => onTimeRangeChange("medium_term")}
-            className={`py-2 px-2 text-center rounded-xl border text-xs font-mono transition-all ${
+            className={`py-2 px-2 text-center rounded-xl border text-xs font-mono transition-all active:scale-[0.97] ${
               timeRange === "medium_term"
                 ? "bg-[#282828] border-[#CEFF00] text-[#CEFF00] font-bold"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white"
@@ -267,7 +311,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
           <button
             type="button"
             onClick={() => onTimeRangeChange("long_term")}
-            className={`py-2 px-2 text-center rounded-xl border text-xs font-mono transition-all ${
+            className={`py-2 px-2 text-center rounded-xl border text-xs font-mono transition-all active:scale-[0.97] ${
               timeRange === "long_term"
                 ? "bg-[#282828] border-[#CEFF00] text-[#CEFF00] font-bold"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white"

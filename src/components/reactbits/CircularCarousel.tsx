@@ -3,85 +3,156 @@
 /**
  * Componente: CircularCarousel
  * Referência: ReactBits (@react-bits/CircularCarousel-JS-CSS)
- * Licença: MIT + Commons Clause
+ * Licença: MIT + Commons Clause (Copyright (c) 2026 David Haz)
  */
 
-import React, { useState, useEffect } from "react";
-import { motion, useAnimation } from "motion/react";
+import React, { useState, useEffect, useRef } from "react";
 import { SpotifyArtist } from "@/lib/mock-artists";
 
 interface CircularCarouselProps {
   artists: SpotifyArtist[];
-  radius?: number;
 }
 
-export const CircularCarousel: React.FC<CircularCarouselProps> = ({
-  artists,
-  radius = 120,
-}) => {
-  const topArtists = artists.slice(0, 6);
+export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) => {
+  const topArtists = artists.slice(0, 8);
   const count = topArtists.length;
   const [rotation, setRotation] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [radiusX, setRadiusX] = useState(260);
 
-  // Rotação contínua sutil quando não pausado
+  // Ajusta o raio horizontal da órbita 3D responsivamente
   useEffect(() => {
-    if (isHovered) return;
-    const interval = setInterval(() => {
-      setRotation((prev) => (prev + 0.4) % 360);
-    }, 30);
-    return () => clearInterval(interval);
-  }, [isHovered]);
+    const updateRadius = () => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.clientWidth;
+      const computed = Math.min(Math.max(width * 0.34, 130), 340);
+      setRadiusX(computed);
+    };
+    updateRadius();
+    window.addEventListener("resize", updateRadius);
+    return () => window.removeEventListener("resize", updateRadius);
+  }, []);
+
+  // Rotação contínua suave a 60fps via requestAnimationFrame (pausa apenas quando um card está em foco)
+  useEffect(() => {
+    if (hoveredId !== null) return;
+    let frameId: number;
+    let lastTime = performance.now();
+
+    const tick = (now: number) => {
+      const dt = now - lastTime;
+      lastTime = now;
+      setRotation((prev) => (prev + dt * 0.012) % 360);
+      frameId = requestAnimationFrame(tick);
+    };
+
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, [hoveredId]);
+
+  const radiusY = Math.round(radiusX * 0.34);
 
   return (
     <div
-      className="relative w-full h-[280px] flex items-center justify-center select-none overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      ref={containerRef}
+      className="relative w-full h-[340px] sm:h-[390px] flex items-center justify-center select-none overflow-hidden"
     >
-      {/* Centro Decorativo Estilo Vinil / Stage */}
-      <div className="w-20 h-20 rounded-full bg-[#1A1A1A] border-2 border-[#CEFF00]/40 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(206,255,0,0.2)] z-10">
-        <span className="font-display font-black text-xs text-[#CEFF00] tracking-tighter">
+      {/* Anel Guia de Órbita em Perspectiva */}
+      <div
+        className="absolute rounded-full border border-dashed border-[#282828] pointer-events-none"
+        style={{
+          width: `${radiusX * 2}px`,
+          height: `${radiusY * 2}px`,
+        }}
+      />
+
+      {/* Centro Estilo Palco / Monólito Quadrado */}
+      <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#141414] border-2 border-[#CEFF00]/50 flex flex-col items-center justify-center shadow-[0_0_40px_rgba(206,255,0,0.15)] z-20 pointer-events-none">
+        <span className="font-mono text-[9px] text-[#A3A3A3] uppercase tracking-widest">
+          SPOTIFY
+        </span>
+        <span className="font-frama font-black italic text-xl sm:text-2xl text-[#CEFF00] tracking-tight leading-none my-0.5">
           TOP {count}
         </span>
-        <span className="font-mono text-[8px] text-brand-muted uppercase">HEADLINERS</span>
+        <span className="font-mono text-[8px] text-[#F7F6EB]/80 uppercase tracking-widest">
+          HEADLINERS
+        </span>
       </div>
 
-      {/* Artistas Orbitando em Anel Circular 3D */}
+      {/* Artistas Orbitando em Anel 3D com Molduras Quadradas Maiores */}
       {topArtists.map((artist, idx) => {
-        const angle = (idx * (360 / count) + rotation) * (Math.PI / 180);
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * (radius * 0.45); // Elipse de perspectiva
-        const scale = 0.75 + (Math.sin(angle) + 1) * 0.25; // Efeito de profundidade Z
-        const zIndex = Math.round(scale * 10);
-        const imageUrl = artist.images?.[0]?.url || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200";
+        const angleDeg = idx * (360 / count) + rotation;
+        const angleRad = angleDeg * (Math.PI / 180);
+
+        const x = Math.cos(angleRad) * radiusX;
+        const y = Math.sin(angleRad) * radiusY;
+
+        // Profundidade Z: sin(angle) varia de -1 (fundo) a +1 (frente)
+        const depth = (Math.sin(angleRad) + 1) / 2; // 0 a 1
+        const scale = 0.72 + depth * 0.34;
+        const isCurrentHovered = hoveredId === artist.id;
+        const zIndex = isCurrentHovered ? 60 : Math.round(10 + depth * 30);
+
+        const imageUrl =
+          artist.images?.[0]?.url ||
+          "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300";
 
         return (
-          <motion.div
+          <div
             key={artist.id}
             className="absolute flex flex-col items-center cursor-pointer group"
             style={{
-              transform: `translate3d(${x}px, ${y}px, 0px) scale(${scale})`,
+              transform: `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0px) scale(${scale.toFixed(3)})`,
               zIndex,
+              willChange: "transform",
             }}
-            whileHover={{ scale: scale * 1.15 }}
+            onMouseEnter={() => setHoveredId(artist.id)}
+            onMouseLeave={() => setHoveredId(null)}
           >
-            {/* Foto do Artista */}
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-[#F7F6EB]/30 group-hover:border-[#CEFF00] shadow-xl bg-black transition-colors relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageUrl}
-                alt={artist.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-            </div>
+            {/* Card Interno Quadrado (Anima o hover separadamente sem tocar no translate3d da órbita!) */}
+            <div
+              className="flex flex-col items-center transition-transform duration-200"
+              style={{
+                transitionTimingFunction: "var(--ease-out)",
+                transform: isCurrentHovered ? "scale(1.14) translateY(-6px)" : "scale(1)",
+              }}
+            >
+              {/* Foto Quadrada Grande do Artista */}
+              <div
+                className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-none overflow-hidden border-2 transition-colors duration-200 bg-[#0E0E0E] relative shadow-[0_14px_30px_rgba(0,0,0,0.85)] ${
+                  isCurrentHovered
+                    ? "border-[#CEFF00] shadow-[0_0_25px_rgba(206,255,0,0.45)]"
+                    : "border-[#F7F6EB]/35"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl}
+                  alt={artist.name}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  draggable={false}
+                />
+                {/* Badge de Posição no Canto Superior Esquerdo */}
+                <span className="absolute top-0 left-0 px-1.5 py-0.5 bg-[#141414]/90 border-r border-b border-[#282828] font-mono text-[9px] font-bold text-[#CEFF00]">
+                  #{idx + 1}
+                </span>
+              </div>
 
-            {/* Nome do Artista */}
-            <span className="mt-1 px-2 py-0.5 rounded-md bg-[#141414]/90 border border-[#282828] text-[9px] font-display font-black uppercase text-white tracking-wider text-center max-w-[90px] truncate shadow-md group-hover:text-[#CEFF00] transition-colors">
-              {artist.name}
-            </span>
-          </motion.div>
+              {/* Plaqueta Retangular com o Nome do Artista */}
+              <div
+                className={`w-24 sm:w-28 md:w-32 px-2 py-1 border-x-2 border-b-2 transition-colors duration-200 text-center ${
+                  isCurrentHovered
+                    ? "bg-[#CEFF00] border-[#CEFF00] text-[#141414]"
+                    : "bg-[#141414] border-[#F7F6EB]/35 text-[#F7F6EB]"
+                }`}
+              >
+                <span className="block text-[9px] sm:text-[10px] font-display font-black uppercase tracking-wider truncate">
+                  {artist.name}
+                </span>
+              </div>
+            </div>
+          </div>
         );
       })}
     </div>

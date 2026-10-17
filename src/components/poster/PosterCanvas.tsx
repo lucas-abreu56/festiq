@@ -1,7 +1,7 @@
 import React from "react";
 import { FestivalLineup } from "@/lib/lineup-engine";
 import { LollaWaveTheme } from "./templates/LollaWaveTheme";
-import { RockStadiumTheme } from "./templates/RockStadiumTheme";
+import { FestifyTheme } from "./templates/FestifyTheme";
 import { TropicalTheme } from "./templates/TropicalTheme";
 import { RetroPressTheme } from "./templates/RetroPressTheme";
 
@@ -12,14 +12,14 @@ interface PosterCanvasProps {
 
 export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
   ({ lineup, exportMode = false }, ref) => {
-    const isHorizontal = lineup.aspectRatio === "16:9";
+    const isSquare = lineup.aspectRatio === "1:1";
 
     const renderTheme = () => {
       switch (lineup.themeId) {
         case "lolla":
           return <LollaWaveTheme lineup={lineup} />;
-        case "rock":
-          return <RockStadiumTheme lineup={lineup} />;
+        case "festify":
+          return <FestifyTheme lineup={lineup} />;
         case "tropical":
           return <TropicalTheme lineup={lineup} />;
         case "retro":
@@ -30,30 +30,37 @@ export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
     };
 
     if (exportMode) {
-      // Nó de exportação exato para captura em alta resolução
-      const width = isHorizontal ? 1920 : 1080;
-      const height = isHorizontal ? 1080 : 1920;
+      // Base lógica proporcional ao preview que escala perfeitamente para 1080x1920 (3x) ou 1080x1080 (2x)
+      const baseWidth = isSquare ? 540 : 360;
+      const baseHeight = isSquare ? 540 : 640;
 
       return (
         <div
-          ref={ref}
-          id="festiq-poster-export-root"
-          className="fixed -left-[9999px] top-0 overflow-hidden poster-export-node"
-          style={{ width: `${width}px`, height: `${height}px` }}
+          aria-hidden="true"
+          className="fixed -left-[9999px] top-0 pointer-events-none select-none overflow-hidden"
+          style={{ width: `${baseWidth}px`, height: `${baseHeight}px` }}
         >
-          {renderTheme()}
+          <div
+            ref={ref}
+            id="festiq-poster-export-root"
+            data-aspect-ratio={lineup.aspectRatio}
+            className="relative overflow-hidden poster-export-node"
+            style={{ width: `${baseWidth}px`, height: `${baseHeight}px` }}
+          >
+            {renderTheme()}
+          </div>
         </div>
       );
     }
 
-    // Modo de visualização no navegador (9:16 ou 16:9)
+    // Modo de visualização no navegador (9:16 Vertical ou 1:1 Quadrado)
     return (
       <div
         ref={ref}
         id="festiq-poster-preview"
         className={`w-full transition-all duration-300 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] border border-brand-border/80 ${
-          isHorizontal
-            ? "max-w-[680px] aspect-[16/9]"
+          isSquare
+            ? "max-w-[480px] sm:max-w-[540px] aspect-square"
             : "max-w-[360px] sm:max-w-[390px] aspect-[9/16]"
         }`}
       >

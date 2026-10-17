@@ -1,9 +1,9 @@
 import { SpotifyArtist, MOCK_ARTISTS } from "./mock-artists";
 
-export type FestivalThemeId = "lolla" | "rock" | "tropical" | "retro";
+export type FestivalThemeId = "lolla" | "festify" | "tropical" | "retro";
 export type CreationMode = "taste" | "genre" | "popularity";
 export type TimeRange = "short_term" | "medium_term" | "long_term";
-export type PosterAspectRatio = "9:16" | "16:9";
+export type PosterAspectRatio = "9:16" | "1:1";
 
 export interface FestivalDay {
   dayLabel: string;
@@ -21,6 +21,7 @@ export interface FestivalLineup {
   timeRange: TimeRange;
   aspectRatio: PosterAspectRatio;
   days: FestivalDay[];
+  allArtists: SpotifyArtist[];
   singleStageHeadliners: SpotifyArtist[];
   singleStageSubHeadliners: SpotifyArtist[];
   singleStageUndercard: SpotifyArtist[];
@@ -158,6 +159,7 @@ export function buildFestivalLineup({
     timeRange,
     aspectRatio,
     days,
+    allArtists: processed.slice(0, 45),
     singleStageHeadliners: [h1, h2, h3],
     singleStageSubHeadliners: processed.slice(3, 11),
     singleStageUndercard: processed.slice(11, 45),

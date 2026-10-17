@@ -1,20 +1,65 @@
 import { toPng } from "html-to-image";
 
 /**
- * Exporta o nó do pôster em resolução 1080x1920 como PNG de alta definição.
+ * Exporta o nó do pôster em resolução 1080x1920 (9:16) ou 1080x1080 (1:1) como PNG de alta definição.
  */
 export async function exportPosterAsPng(node: HTMLElement): Promise<string> {
+  if (typeof document !== "undefined" && document.fonts) {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Continua mesmo se document.fonts falhar
+    }
+  }
+
+  const aspectRatio = node.getAttribute("data-aspect-ratio") || "9:16";
+  const isSquare = aspectRatio === "1:1";
+
+  const baseWidth = isSquare ? 540 : 360;
+  const baseHeight = isSquare ? 540 : 640;
+  const targetWidth = 1080;
+  const targetHeight = isSquare ? 1080 : 1920;
+  const ratio = isSquare ? 2 : 3;
+
+  const baseOptions = {
+    width: baseWidth,
+    height: baseHeight,
+    canvasWidth: targetWidth,
+    canvasHeight: targetHeight,
+    pixelRatio: ratio,
+    quality: 1,
+    cacheBust: true,
+    style: {
+      transform: "none",
+      left: "0px",
+      top: "0px",
+      position: "relative",
+      visibility: "visible",
+      opacity: "1",
+    },
+  };
+
   try {
     const dataUrl = await toPng(node, {
-      pixelRatio: 1, // O nó já possui 1080 × 1920 px fixos
-      quality: 0.98,
-      cacheBust: true,
+      ...baseOptions,
       skipFonts: false,
     });
-    return dataUrl;
-  } catch (error) {
-    console.error("Erro ao gerar imagem com html-to-image:", error);
-    throw new Error("Não foi possível renderizar a imagem do pôster.");
+
+    if (dataUrl && dataUrl.length > 1000) {
+      return dataUrl;
+    }
+    throw new Error("PNG gerado vazio, tentando fallback de fontes.");
+  } catch (firstErr) {
+    console.warn("Tentando fallback de exportação:", firstErr);
+    try {
+      return await toPng(node, {
+        ...baseOptions,
+        skipFonts: true,
+      });
+    } catch (error) {
+      console.error("Erro ao gerar imagem com html-to-image:", error);
+      throw new Error("Não foi possível renderizar a imagem do pôster.");
+    }
   }
 }
 

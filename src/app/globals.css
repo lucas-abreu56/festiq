@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fontes Oficiais do Design Bomb (PP Frama) */
+/* Fontes Oficiais Auto-Hospedadas do Design Bomb (PP Frama) — Zero CORS no html-to-image */
 @font-face {
   font-family: "PP Frama Extrabold Italic";
-  src: url("https://framerusercontent.com/assets/lKs8dLKV0WRt0VrtfvORXFoY.woff2");
+  src: url("/fonts/lKs8dLKV0WRt0VrtfvORXFoY.woff2") format("woff2");
   font-display: swap;
   font-style: italic;
   font-weight: 800;
@@ -13,7 +13,7 @@
 
 @font-face {
   font-family: "PP Frama Black Italic";
-  src: url("https://framerusercontent.com/assets/28Z2hs2GcwnMl602hOg4rszmxIc.woff2");
+  src: url("/fonts/28Z2hs2GcwnMl602hOg4rszmxIc.woff2") format("woff2");
   font-display: swap;
   font-style: italic;
   font-weight: 900;
@@ -21,7 +21,7 @@
 
 @font-face {
   font-family: "PP Frama Bold";
-  src: url("https://framerusercontent.com/assets/pVoJ1EmRcoahSj1z89w2DzIYI.woff2");
+  src: url("/fonts/UjlFhCnUjxhNfep4oYBPqnEssyo.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 700;
@@ -29,7 +29,7 @@
 
 @font-face {
   font-family: "PP Frama Bold Italic";
-  src: url("https://framerusercontent.com/assets/enD8HkVqjrlXuwDm6KmS5CQBNw.woff2");
+  src: url("/fonts/GrgcKwrN6d3Uz8EwcLHZxwEfC4.woff2") format("woff2");
   font-display: swap;
   font-style: italic;
   font-weight: 700;
@@ -37,7 +37,7 @@
 
 @font-face {
   font-family: "PP Frama Regular";
-  src: url("https://framerusercontent.com/assets/5nYVVC3QCkcPOZ07DOoiY7k4O0.woff2");
+  src: url("/fonts/5nYVVC3QCkcPOZ07DOoiY7k4O0.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 400;
@@ -52,12 +52,14 @@
   --bomb-green: #31A362;
   --bomb-chalk: #F7F6EB;
   --bomb-bg: #141414;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
   min-height: 100dvh;
 }
@@ -82,7 +84,7 @@ body {
   border: 1px solid rgba(247, 246, 235, 0.15);
   border-radius: 12px;
   position: relative;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
 }
 
 .bomb-ticket:hover {
