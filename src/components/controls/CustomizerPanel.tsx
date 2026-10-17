@@ -39,10 +39,10 @@ const THEMES: { id: FestivalThemeId; name: string; tag: string; bg: string; text
   },
   {
     id: "tropical",
-    name: "Planeta Verão",
+    name: "Planeta Atlântida",
     tag: "Tributo ao Planeta",
-    bg: "bg-[#0B192C]",
-    text: "text-[#FFE600]",
+    bg: "bg-gradient-to-b from-[#F5A3B7] to-[#FCE373]",
+    text: "text-[#141414]",
   },
   {
     id: "retro",

@@ -18,8 +18,32 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
   const count = topArtists.length;
   const [rotation, setRotation] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [resolvedImages, setResolvedImages] = useState<Record<string, string>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const [radiusX, setRadiusX] = useState(260);
+
+  // Busca automaticamente fotos reais via /api/artists/photos (Deezer API) caso algum artista venha sem imagem
+  useEffect(() => {
+    let active = true;
+    topArtists.forEach(async (artist) => {
+      const existingUrl = artist.images?.[0]?.url;
+      if (existingUrl && !existingUrl.includes("unsplash.com")) return;
+      if (resolvedImages[artist.id]) return;
+
+      try {
+        const res = await fetch(`/api/artists/photos?name=${encodeURIComponent(artist.name)}`);
+        const data = await res.json();
+        if (active && data?.imageUrl) {
+          setResolvedImages((prev) => ({ ...prev, [artist.id]: data.imageUrl }));
+        }
+      } catch {
+        // Silencia falha de rede individual
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [topArtists, resolvedImages]);
 
   // Ajusta o raio horizontal da órbita 3D responsivamente
   useEffect(() => {
@@ -70,13 +94,13 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
       {/* Centro Estilo Palco / Monólito Quadrado */}
       <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#141414] border-2 border-[#CEFF00]/50 flex flex-col items-center justify-center shadow-[0_0_40px_rgba(206,255,0,0.15)] z-20 pointer-events-none">
         <span className="font-mono text-[9px] text-[#A3A3A3] uppercase tracking-widest">
-          SPOTIFY
+          HEADLINERS
         </span>
         <span className="font-frama font-black italic text-xl sm:text-2xl text-[#CEFF00] tracking-tight leading-none my-0.5">
           TOP {count}
         </span>
         <span className="font-mono text-[8px] text-[#F7F6EB]/80 uppercase tracking-widest">
-          HEADLINERS
+          FOTOS REAIS
         </span>
       </div>
 
@@ -95,8 +119,9 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
         const zIndex = isCurrentHovered ? 60 : Math.round(10 + depth * 30);
 
         const imageUrl =
+          resolvedImages[artist.id] ||
           artist.images?.[0]?.url ||
-          "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300";
+          "https://cdn-images.dzcdn.net/images/artist/238f5524a401dfdd5cac685f0f7989bd/500x500-000000-80-0-0.jpg";
 
         return (
           <div

@@ -50,10 +50,10 @@
   - Pirâmide tipográfica centralizada exibindo todos os 45 artistas: 1 Headliner supremo no topo, 2 Co-Headliners na 2ª linha, 3 Sub-Headliners na 3ª linha e 39 artistas em grade estruturada de colunas com quebra equilibrada.
   - Base: Ilustração vetorial autoral com montanhas amarelas, cabana A-frame azul royal com chaminé soltando fumaça amarela, pinheiros line-art, vasos botânicos com costela-de-adão e flores geométricas, e assinatura `FESTIQ` no rodapé.
 
-### Tema 3 — Planeta Verão (`tropical` · Tributo ao Planeta Atlântida)
-- **Atmosfera**: Festival litorâneo de verão com atmosfera noturna/solar.
-- **Paleta de Cores**: Azul Oceano `#0B192C` a `#0077B6`, Amarelo Sol `#FFE600`, Ciano `#00E5FF` e Rosa Coral `#FF2E63`.
-- **Estrutura**: Divisão em 3 dias (Sexta, Sábado e Domingo) com Palco Planeta e Palco Atlântida, exibindo todos os 45 artistas.
+### Tema 3 — Planeta Atlântida (`tropical` · Tributo ao Planeta Atlântida)
+- **Atmosfera**: Pôster de verão gaúcho/litorâneo com estética pop-art tropical, fiel ao cartaz oficial do Planeta Atlântida.
+- **Paleta de Cores**: Gradiente central de Rosa Flamingo Pastel `#F5A3B7` a Amarelo Sol `#FCE373`, globo 3D azul oceano `#0277BD` com anel orbital laranja `#E64A19` e emblema dourado `#FFB300`, moldura ilustrada com Ciano `#00E5FF`, Rosa `#FF4081` e Coral `#FF3D00`.
+- **Estrutura**: Globo 3D e raios solares no topo, moldura lateral ilustrada em SVG (coqueiros, globos terrestres, raios, lábios pop-art e ondas do mar) e bloco único centralizado de lineup em preto `#141414` com 3 Headliners separados por raios (`⚡`), 4 Co-Headliners e undercard completo separado por pontos coloridos (`•`).
 
 ### Tema 4 — Imprensa Retrô (`retro` · Woodblock / Vintage Letterpress)
 - **Atmosfera**: Cartaz histórico dos anos 60/70 impresso em prensa tipográfica sobre papel linho cru.

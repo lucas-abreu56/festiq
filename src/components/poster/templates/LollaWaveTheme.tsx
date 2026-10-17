@@ -5,10 +5,38 @@ interface ThemeProps {
   lineup: FestivalLineup;
 }
 
+/**
+ * Quebra nomes longos de headliners em 2 linhas equilibradas (como "QUEENS OF / THE STONE AGE"
+ * ou "RED HOT / CHILI PEPPERS" no pôster real do Lollapalooza), mantendo corpo grande
+ * e impedindo que vazem da coluna ciano.
+ */
+function splitHeadlinerLines(name: string): string[] {
+  const clean = name.trim();
+  if (clean.length <= 14 || !clean.includes(" ")) {
+    return [clean];
+  }
+  const words = clean.split(/\s+/);
+  if (words.length === 2) {
+    return [words[0], words[1]];
+  }
+  // Encontra o ponto de corte mais equilibrado em número de caracteres
+  let bestIdx = Math.ceil(words.length / 2);
+  let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const l1 = words.slice(0, i).join(" ").length;
+    const l2 = words.slice(i).join(" ").length;
+    const diff = Math.abs(l1 - l2);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+  return [words.slice(0, bestIdx).join(" "), words.slice(bestIdx).join(" ")];
+}
+
 export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
   const isSquare = lineup.aspectRatio === "1:1";
 
-  // Todos os 45 artistas garantidos
   const allArtists =
     lineup.allArtists && lineup.allArtists.length > 0
       ? lineup.allArtists
@@ -18,28 +46,44 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
           ...lineup.singleStageUndercard,
         ];
 
-  // Coluna esquerda (Ciano): 10 Headliners alinhados à direita, como no pôster oficial do Lolla
+  // Coluna esquerda (Ciano): 10 Headliners alinhados à direita, 100% dentro da onda ciano
   const headliners = allArtists.slice(0, 10);
-  // Coluna direita (Amarelo-Limão): Todos os 35 artistas restantes do undercard
+  // Coluna direita (Amarelo-Limão): 35 artistas do undercard distribuídos em linhas coesas
   const undercard = allArtists.slice(10);
 
-  // Agrupa o undercard em linhas densas de 3 a 4 artistas (exatamente ~12 a 15 linhas como no cartaz oficial)
+  // Agrupa o undercard balanceando a soma de caracteres por linha para preencher a coluna amarela sem buracos
   const undercardRows: (typeof undercard)[] = [];
-  const perRow = isSquare ? 3 : 3;
-  for (let i = 0; i < undercard.length; i += perRow) {
-    undercardRows.push(undercard.slice(i, i + perRow));
+  const targetCharsPerRow = isSquare ? 36 : 32;
+  let currentRow: typeof undercard = [];
+  let currentLen = 0;
+
+  undercard.forEach((artist) => {
+    const nameLen = artist.name.length;
+    if (
+      currentRow.length >= 4 ||
+      (currentRow.length >= 2 && currentLen + nameLen > targetCharsPerRow)
+    ) {
+      undercardRows.push(currentRow);
+      currentRow = [artist];
+      currentLen = nameLen;
+    } else {
+      currentRow.push(artist);
+      currentLen += nameLen + 3;
+    }
+  });
+  if (currentRow.length > 0) {
+    undercardRows.push(currentRow);
   }
 
   return (
     <div className="w-full h-full bg-[#F25444] text-[#0D0D0D] flex flex-col justify-between relative overflow-hidden select-none font-sans">
-      {/* 1. Camada Gráfica de Fundo: Cantos Street-Art Vermelhos + Onda Ciano + Campo Amarelo-Limão */}
+      {/* 1. Camada Gráfica de Fundo: Fronteira Ciano/Amarelo alinhada exatamente em 39.5% (x=237 de 600) */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
         viewBox="0 0 600 900"
         preserveAspectRatio="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Fundo Vermelho Coral (Aparece no canto superior esquerdo como no cartaz oficial) */}
         <rect width="600" height="900" fill="#F25444" />
 
         {/* Textura Street-Art no Canto Superior Esquerdo ("15" / Grafismos Pretos) */}
@@ -61,53 +105,53 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
           <circle cx="28" cy="62" r="2.5" fill="#F25444" />
         </g>
 
-        {/* Onda Orgânica Ciano à Esquerda */}
+        {/* Onda Orgânica Ciano à Esquerda (cobre até x=242..248 em toda a altura vertical) */}
         <path
-          d="M 18 890 C 12 720, 6 580, 14 420 C 22 250, 32 110, 88 28 C 135 -10, 250 0, 340 18 L 340 890 Z"
+          d="M 18 890 C 12 720, 8 580, 14 420 C 20 250, 30 110, 88 26 C 135 -10, 240 0, 330 18 L 330 890 Z"
           fill="#63CBD8"
         />
 
         {/* Espirais Ciano Claros dentro da Onda Esquerda */}
         <circle
-          cx="145"
-          cy="185"
-          r="95"
+          cx="135"
+          cy="195"
+          r="92"
           fill="none"
           stroke="#82D9E4"
           strokeWidth="22"
           opacity="0.7"
         />
         <circle
-          cx="145"
-          cy="185"
-          r="48"
+          cx="135"
+          cy="195"
+          r="46"
           fill="none"
           stroke="#82D9E4"
           strokeWidth="18"
           opacity="0.7"
         />
         <circle
-          cx="155"
-          cy="520"
-          r="85"
+          cx="145"
+          cy="530"
+          r="82"
           fill="none"
           stroke="#82D9E4"
           strokeWidth="20"
           opacity="0.65"
         />
         <circle
-          cx="155"
-          cy="520"
-          r="40"
+          cx="145"
+          cy="530"
+          r="38"
           fill="none"
           stroke="#82D9E4"
           strokeWidth="16"
           opacity="0.65"
         />
 
-        {/* Campo Orgânico Amarelo-Limão à Direita */}
+        {/* Campo Orgânico Amarelo-Limão à Direita (Fronteira estável em x=238..244 = 39.8% da largura) */}
         <path
-          d="M 345 0 C 315 65, 235 160, 238 320 C 240 480, 232 680, 210 890 L 600 890 L 600 0 Z"
+          d="M 335 0 C 300 50, 242 120, 240 280 C 238 450, 242 660, 236 890 L 600 890 L 600 0 Z"
           fill="#E2F018"
         />
 
@@ -121,40 +165,40 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
         {/* Estrelas Brancas e Brilhos na Onda Ciano */}
         <g stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round">
-          <path d="M72 110 L72 126 M64 118 L80 118 M66 112 L78 124 M78 112 L66 124" />
-          <path d="M52 245 L52 257 M46 251 L58 251 M48 247 L56 255 M56 247 L48 255" />
-          <path d="M98 465 L98 477 M92 471 L104 471 M94 467 L102 475 M102 467 L94 475" />
+          <path d="M68 115 L68 129 M61 122 L75 122 M63 117 L73 127 M73 117 L63 127" />
+          <path d="M46 250 L46 262 M40 256 L52 256 M42 252 L50 260 M50 252 L42 260" />
+          <path d="M88 475 L88 487 M82 481 L94 481 M84 477 L92 485 M92 477 L84 485" />
         </g>
 
         {/* Mão Vetorial Fazendo Símbolo do Rock na Borda Esquerda */}
-        <g transform="translate(-4, 375)" fill="#E0F2F1" stroke="#0D0D0D" strokeWidth="2.5">
-          <path d="M0 65 L28 42 L34 18 C35 14 40 15 39 20 L35 40 L44 42 L52 22 C54 18 59 20 57 25 L48 48 L36 62 L0 82 Z" />
+        <g transform="translate(-4, 385)" fill="#E0F2F1" stroke="#0D0D0D" strokeWidth="2.5">
+          <path d="M0 65 L26 42 L32 18 C33 14 38 15 37 20 L33 40 L42 42 L50 22 C52 18 57 20 55 25 L46 48 L34 62 L0 82 Z" />
         </g>
 
         {/* Trilhas Onduladas Pretas no Canto Inferior Esquerdo */}
         <path
-          d="M 8 620 Q 26 700, 18 780 Q 14 820, 45 830 L 175 848"
+          d="M 8 660 Q 24 725, 16 795 Q 12 830, 42 840 L 160 855"
           fill="none"
           stroke="#0D0D0D"
-          strokeWidth="3.5"
-          strokeDasharray="180 6"
+          strokeWidth="3.2"
+          strokeDasharray="160 6"
         />
         <path
-          d="M 2 650 Q 18 720, 10 795 Q 6 832, 38 842 L 165 860"
+          d="M 2 685 Q 16 745, 10 810 Q 6 842, 36 850 L 150 865"
           fill="none"
           stroke="#0D0D0D"
-          strokeWidth="2.5"
+          strokeWidth="2.2"
         />
       </svg>
 
-      {/* 2. Cabeçalho Oficial (Data/Local Alinhados à Direita + Logo Estilo Lolla 3D) */}
+      {/* 2. Cabeçalho Oficial (Data/Local 100% no Ciano + Logo Estilo Lolla 3D no Amarelo) */}
       <div
-        className={`relative z-10 px-4 sm:px-5 flex items-center justify-center gap-3 ${
-          isSquare ? "pt-3 pb-1" : "pt-5 pb-2"
+        className={`relative z-10 px-4 sm:px-5 flex items-center w-full ${
+          isSquare ? "pt-3 pb-1" : "pt-4 pb-1.5"
         }`}
       >
-        {/* Data e Local (Sobre o Ciano, Alinhado à Direita) */}
-        <div className="w-[37%] text-right pr-1">
+        {/* Data e Local (38% da largura -> termina exatamente antes da fronteira de 39.8%) */}
+        <div className="w-[38%] text-right pr-2.5">
           <p className="font-sans text-[8px] sm:text-[9px] font-extrabold text-[#0D0D0D] leading-tight">
             Outubro 24, 25 e 26 de 2026
           </p>
@@ -167,79 +211,97 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
 
         {/* Logo Principal com Extrusão 3D Preta Fiel ao Lollapalooza */}
-        <div className="w-[63%] flex flex-col items-start pl-1">
+        <div className="w-[62%] flex flex-col items-start pl-2">
           <div className="relative inline-block">
             <span
-              className={`font-display font-black uppercase tracking-tight text-white block leading-none px-2.5 py-1 bg-[#0D0D0D] rounded-md border-2 border-white shadow-[4px_4px_0px_#0D0D0D] ${
+              className={`font-display font-black uppercase tracking-tight text-white block leading-none px-3 py-1 bg-[#0D0D0D] rounded-md border-2 border-white shadow-[4px_4px_0px_#0D0D0D] ${
                 isSquare ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"
               }`}
             >
               {lineup.title}
             </span>
-            <span className="inline-block bg-[#0D0D0D] text-white font-display font-black text-[7px] sm:text-[8px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-sm mt-0.5 ml-auto float-right">
+            <span className="inline-block bg-[#0D0D0D] text-white font-display font-black text-[7px] sm:text-[8px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-sm mt-0.5 float-right">
               BRASIL
             </span>
           </div>
         </div>
       </div>
 
-      {/* 3. Corpo do Lineup: Coluna Esquerda (10 Headliners Alinhados à Direita) + Coluna Direita (35 Undercard) */}
+      {/* 3. Corpo do Lineup: Divisão Exata 38% (Ciano) / 62% (Amarelo-Limão) — Zero Vazamento de Cor */}
       <div
-        className={`relative z-10 flex-1 px-3 sm:px-5 grid grid-cols-12 gap-2 items-stretch overflow-hidden ${
-          isSquare ? "py-0.5" : "py-1.5"
+        className={`relative z-10 flex-1 px-3.5 sm:px-5 flex items-stretch w-full overflow-hidden ${
+          isSquare ? "py-1" : "py-1.5"
         }`}
       >
-        {/* COLUNA ESQUERDA: 10 Headliners Empilhados e Alinhados à Direita sobre a Onda Ciano */}
-        <div className="col-span-5 flex flex-col justify-between text-right pr-1.5 py-0.5">
+        {/* COLUNA ESQUERDA (38%): 10 Headliners Empilhados e 100% Dentro do Ciano */}
+        <div className="w-[38%] flex flex-col justify-between text-right pr-2.5 py-0.5">
           {headliners.map((artist) => {
-            const isLong = artist.name.length > 16;
+            const lines = splitHeadlinerLines(artist.name);
+            const isShort = artist.name.length <= 6; // Ex: SZA, ALOK, LORDE, BECK
+            const maxLineLen = Math.max(...lines.map((l) => l.length));
+
+            // Escala adaptativa: nomes curtos (SZA) ganham corpo máximo; nomes em 2 linhas mantêm impacto forte sem vazar
+            const sizeClass = isSquare
+              ? isShort
+                ? "text-lg sm:text-xl tracking-normal"
+                : maxLineLen > 13
+                ? "text-[11.5px] sm:text-[13px] tracking-tighter"
+                : "text-sm sm:text-base tracking-tight"
+              : isShort
+              ? "text-xl sm:text-2xl tracking-normal"
+              : maxLineLen > 13
+              ? "text-[13px] sm:text-[15px] tracking-tighter"
+              : "text-base sm:text-lg tracking-tight";
+
             return (
               <div key={artist.id} className="leading-none">
-                <span
-                  className={`block font-display font-black uppercase tracking-tighter text-[#0D0D0D] ${
-                    isSquare
-                      ? isLong
-                        ? "text-[11px] sm:text-xs"
-                        : "text-xs sm:text-sm"
-                      : isLong
-                      ? "text-xs sm:text-sm"
-                      : "text-sm sm:text-base"
-                  }`}
-                  style={{ lineHeight: "0.9" }}
-                >
-                  {artist.name}
-                </span>
+                {lines.map((line, lIdx) => (
+                  <span
+                    key={lIdx}
+                    className={`block font-display font-black uppercase text-[#0D0D0D] ${sizeClass}`}
+                    style={{ lineHeight: lines.length > 1 ? "0.86" : "0.92" }}
+                  >
+                    {line}
+                  </span>
+                ))}
               </div>
             );
           })}
         </div>
 
-        {/* COLUNA DIREITA: 35 Artistas do Undercard em Linhas Densas sobre o Amarelo-Limão */}
-        <div className="col-span-7 flex flex-col justify-between text-left pl-1 py-0.5">
+        {/* COLUNA DIREITA (62%): 35 Artistas do Undercard 100% Dentro do Amarelo-Limão */}
+        <div className="w-[62%] flex flex-col justify-between text-left pl-2.5 py-0.5">
           {undercardRows.map((row, rIdx) => (
             <div
               key={rIdx}
-              className="flex flex-wrap items-center justify-start gap-x-1 gap-y-0 leading-none"
+              className="w-full flex flex-wrap items-center justify-start gap-x-1.5 gap-y-0 leading-none"
             >
-              {row.map((artist, aIdx) => (
-                <React.Fragment key={artist.id}>
-                  <span
-                    className={`font-display font-black uppercase tracking-tight text-[#0D0D0D] ${
-                      isSquare
-                        ? "text-[8px] sm:text-[9px]"
-                        : "text-[9px] sm:text-[10.5px]"
-                    }`}
-                    style={{ lineHeight: "1.02" }}
-                  >
-                    {artist.name}
-                  </span>
-                  {aIdx < row.length - 1 && (
-                    <span className="text-[#00ACC1] font-black text-[7px] sm:text-[8px] leading-none">
-                      •
+              {row.map((artist, aIdx) => {
+                const isShortUnder = artist.name.length <= 6;
+                return (
+                  <React.Fragment key={artist.id}>
+                    <span
+                      className={`font-display font-black uppercase text-[#0D0D0D] ${
+                        isSquare
+                          ? isShortUnder
+                            ? "text-[10px] sm:text-[11px] tracking-normal"
+                            : "text-[9px] sm:text-[10px] tracking-tight"
+                          : isShortUnder
+                          ? "text-[11px] sm:text-[12.5px] tracking-normal"
+                          : "text-[10px] sm:text-[11.5px] tracking-tight"
+                      }`}
+                      style={{ lineHeight: "1.02" }}
+                    >
+                      {artist.name}
                     </span>
-                  )}
-                </React.Fragment>
-              ))}
+                    {aIdx < row.length - 1 && (
+                      <span className="text-[#0097A7] font-black text-[8px] sm:text-[9px] leading-none">
+                        •
+                      </span>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </div>
           ))}
         </div>
@@ -247,20 +309,18 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
       {/* 4. Rodapé Oficial: Silhueta da Multidão + Barra Preta de Assinatura */}
       <div className="relative z-10 mt-auto">
-        {/* Silhueta de Público e Mãos Erguidas (SVG Vetorial sem Emojis) */}
         <svg
-          className={`w-full block ${isSquare ? "h-5 sm:h-6" : "h-7 sm:h-8"}`}
+          className={`w-full block ${isSquare ? "h-4 sm:h-5" : "h-6 sm:h-7"}`}
           viewBox="0 0 600 45"
           preserveAspectRatio="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M0 45 L0 32 Q 90 28, 180 36 L 230 34 L 285 18 L 295 28 L 340 20 L 385 30 L 420 12 L 435 28 L 495 16 L 540 28 L 585 8 L 600 22 L 600 45 Z"
+            d="M0 45 L0 32 Q 90 28, 180 36 L 236 34 L 285 18 L 295 28 L 340 20 L 385 30 L 420 12 L 435 28 L 495 16 L 540 28 L 585 8 L 600 22 L 600 45 Z"
             fill="#0D0D0D"
           />
         </svg>
 
-        {/* Barra Preta Inferior */}
         <div
           className={`bg-[#0D0D0D] px-4 flex items-center justify-between text-[7.5px] sm:text-[8.5px] font-mono text-white/85 uppercase ${
             isSquare ? "py-1.5" : "py-2"
