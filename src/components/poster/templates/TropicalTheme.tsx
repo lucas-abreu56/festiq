@@ -1,22 +1,140 @@
 import React from "react";
 import { FestivalLineup } from "@/lib/lineup-engine";
+import { SpotifyArtist } from "@/lib/mock-artists";
 
 interface ThemeProps {
   lineup: FestivalLineup;
 }
 
 /**
- * Quebra nomes compostos em 2 linhas compactas para as 2 primeiras fileiras de Headliners
- * do Planeta Atlântida (ex: "VINTAGE / CULTURE", "RED HOT / CHILI PEPPERS").
+ * Extrai a letra principal do festival para o emblema 3D no centro do globo:
+ * - Se começar com "PLANETA " e tiver segunda palavra (ex: "PLANETA ATLÂNTIDA" -> "A", "PLANETA LUCAS" -> "L"),
+ *   usa a inicial da segunda palavra.
+ * - Caso contrário, usa a primeira letra alfanumérica do nome escolhido (ex: "FESTIQ STUDIO" -> "F", "MEUPALOOZA" -> "M").
  */
-function stackPlanetaHeadliner(name: string): string[] {
+function extractPlanetaLetter(title: string): string {
+  const clean = (title || "FESTIQ").trim().toUpperCase();
+  if (clean.startsWith("PLANETA ")) {
+    const rest = clean.replace(/^PLANETA\s+/, "").trim();
+    const match = rest.match(/[A-ZÀ-Ú0-9]/);
+    if (match) return match[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  const firstMatch = clean.match(/[A-ZÀ-Ú0-9]/);
+  if (firstMatch) {
+    return firstMatch[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  return "A";
+}
+
+/**
+ * Empilha nomes compostos em 2 linhas equilibradas quando ultrapassam `maxSingleChars`
+ * (exatamente como "VINTAGE / CULTURE", "JOTA / QUEST", "LUAN / SANTANA", "LUÍSA / SONZA"
+ * no cartaz oficial do Planeta Atlântida), mantendo todos os nomes 100% inteiros.
+ */
+function stackPlanetaName(name: string, maxSingleChars: number): string[] {
   const clean = name.trim();
-  if (clean.length <= 10 || !clean.includes(" ")) {
+  if (clean.length <= maxSingleChars || !clean.includes(" ")) {
     return [clean];
   }
   const words = clean.split(/\s+/);
-  const mid = Math.ceil(words.length / 2);
-  return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
+  if (words.length === 2) {
+    return [words[0], words[1]];
+  }
+  let bestIdx = Math.ceil(words.length / 2);
+  let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const l1 = words.slice(0, i).join(" ").length;
+    const l2 = words.slice(i).join(" ").length;
+    const diff = Math.abs(l1 - l2);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+  return [words.slice(0, bestIdx).join(" "), words.slice(bestIdx).join(" ")];
+}
+
+/**
+ * Distribui os 32 artistas do undercard em 8 fileiras equilibradas (ou 7 fileiras em 1:1)
+ * com 3 a 5 artistas cada e equaliza a soma de caracteres por fileira, evitando linhas
+ * isoladas com 1 artista e garantindo ritmo vertical uniforme do topo ao rodapé.
+ */
+function buildPlanetaUndercardRows(
+  artists: SpotifyArtist[],
+  isSquare: boolean
+): SpotifyArtist[][] {
+  if (artists.length === 0) return [];
+
+  const targetRows = isSquare
+    ? Math.min(7, Math.max(1, Math.round(artists.length / 4.5)))
+    : Math.min(8, Math.max(1, Math.round(artists.length / 4)));
+
+  const rows: SpotifyArtist[][] = [];
+  const baseCount = Math.floor(artists.length / targetRows);
+  const extraCount = artists.length % targetRows;
+  let cursor = 0;
+
+  for (let r = 0; r < targetRows; r++) {
+    const count = baseCount + (r < extraCount ? 1 : 0);
+    rows.push(artists.slice(cursor, cursor + count));
+    cursor += count;
+  }
+
+  const getRowWeight = (row: SpotifyArtist[]) =>
+    row.reduce((acc, a) => acc + a.name.length, 0) + Math.max(0, row.length - 1) * 3;
+
+  // Equaliza a soma de caracteres entre fileiras do undercard
+  for (let iter = 0; iter < 25; iter++) {
+    let heaviestIdx = 0;
+    let lightestIdx = 0;
+    let maxW = -Infinity;
+    let minW = Infinity;
+
+    rows.forEach((row, idx) => {
+      const w = getRowWeight(row);
+      if (w > maxW) {
+        maxW = w;
+        heaviestIdx = idx;
+      }
+      if (w < minW) {
+        minW = w;
+        lightestIdx = idx;
+      }
+    });
+
+    if (maxW - minW <= 6 || heaviestIdx === lightestIdx) break;
+
+    const heavyRow = rows[heaviestIdx];
+    const lightRow = rows[lightestIdx];
+    const idealDiff = (maxW - minW) / 2;
+    let bestH = -1;
+    let bestL = -1;
+    let bestScore = Infinity;
+
+    for (let h = 0; h < heavyRow.length; h++) {
+      for (let l = 0; l < lightRow.length; l++) {
+        const delta = heavyRow[h].name.length - lightRow[l].name.length;
+        if (delta > 1) {
+          const score = Math.abs(delta - idealDiff);
+          if (score < bestScore) {
+            bestScore = score;
+            bestH = h;
+            bestL = l;
+          }
+        }
+      }
+    }
+
+    if (bestH !== -1 && bestL !== -1) {
+      const tmp = heavyRow[bestH];
+      heavyRow[bestH] = lightRow[bestL];
+      lightRow[bestL] = tmp;
+    } else {
+      break;
+    }
+  }
+
+  return rows;
 }
 
 export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
@@ -31,343 +149,365 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           ...lineup.singleStageUndercard,
         ];
 
-  // Estrutura fiel ao pôster real do Planeta Atlântida:
-  // Linha 1: 3 Headliners principais separados por raios (⚡)
+  const letter = extractPlanetaLetter(lineup.title);
+
+  // Estrutura fiel ao cartaz oficial do Planeta Atlântida 2023:
+  // Linha 1: 3 Headliners principais separados por raios (⚡) e empilhados em 2 linhas
   const row1Headliners = allArtists.slice(0, 3);
-  // Linha 2: 4 Co-Headliners em destaque
+  // Linha 2: 4 Co-Headliners em UMA ÚNICA FILEIRA (nomes compostos empilham em 2 linhas como "JOTA / QUEST • LUAN / SANTANA • LUDMILLA • LUÍSA / SONZA")
   const row2CoHeadliners = allArtists.slice(3, 7);
-  // Linha 3: 3 Sub-Headliners médios
-  const row3SubA = allArtists.slice(7, 10);
-  // Linha 4: 3 Sub-Headliners médios
-  const row4SubB = allArtists.slice(10, 13);
-  // Demais 32 artistas distribuídos em linhas centralizadas de 3 a 4 artistas
-  const remainingUndercard = allArtists.slice(13);
+  // Linha 3: 3 Sub-Headliners em UMA ÚNICA FILEIRA
+  const row3SubHeadliners = allArtists.slice(7, 10);
+  // Linha 4: 3 Sub-Headliners em UMA ÚNICA FILEIRA
+  const row4SubHeadliners = allArtists.slice(10, 13);
+  // Linhas 5 a 12: Demais 32 artistas distribuídos em 8 fileiras equalizadas de 4 artistas (ou 7 fileiras em 1:1)
+  const undercardRows = buildPlanetaUndercardRows(allArtists.slice(13, 45), isSquare);
 
-  const undercardRows: (typeof remainingUndercard)[] = [];
-  const perRow = isSquare ? 4 : 4;
-  for (let i = 0; i < remainingUndercard.length; i += perRow) {
-    undercardRows.push(remainingUndercard.slice(i, i + perRow));
-  }
+  const dotColors = ["text-[#0097A7]", "text-[#E64A19]", "text-[#00897B]"];
 
-  const dotColors = ["text-[#00B8D4]", "text-[#FF5722]", "text-[#00C853]"];
+  const displayArcTitle =
+    lineup.title.trim().toUpperCase() === "FESTIQ STUDIO"
+      ? "PLANETA FESTIQ"
+      : lineup.title.trim().toUpperCase();
 
   return (
     <div
-      className="w-full h-full text-[#141414] flex flex-col justify-between relative overflow-hidden select-none font-sans"
+      className="w-full h-full text-[#141414] flex flex-row items-stretch justify-between relative overflow-hidden select-none font-sans"
       style={{
         background:
-          "linear-gradient(180deg, #F5A3B7 0%, #F6B0B2 38%, #F9CA92 68%, #FCE373 100%)",
+          "linear-gradient(180deg, #F595B1 0%, #F69EAE 14%, #F6A6A5 28%, #F7B499 42%, #F8C08F 56%, #FAC881 70%, #FAD471 84%, #FCE063 100%)",
       }}
     >
-      {/* 1. Moldura Ilustrada Pop-Art Tropical (Coqueiros, Raios, Globos, Lábios e Ondas do Mar) */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        viewBox="0 0 600 900"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Raios de Sol Amarelos Irradiando Atrás do Globo Central */}
-        <g fill="#FFE600" stroke="#141414" strokeWidth="1.5">
-          <polygon points="300,115 95,45 125,85 75,95 145,128 85,155 165,165 110,210 235,175" />
-          <polygon points="300,115 505,45 475,85 525,95 455,128 515,155 435,165 490,210 365,175" />
-        </g>
-
-        {/* Coqueiros e Folhagens Tropicais — Canto Superior Esquerdo */}
-        <g stroke="#141414" strokeWidth="2.5" strokeLinejoin="round">
-          <path d="M-10 95 Q 65 85 115 145 Q 55 125 -10 135 Z" fill="#FFE600" />
-          <path d="M15 -10 Q 95 25 145 105 Q 75 65 15 35 Z" fill="#00E5FF" />
-          <path d="M85 -10 Q 155 15 195 95 Q 135 35 125 -10 Z" fill="#00E5FF" />
-          <path d="M-10 35 Q 55 45 95 115 Q 35 85 -10 75 Z" fill="#FF4081" />
-          <circle cx="28" cy="48" r="22" fill="#FFFFFF" />
-          <circle cx="28" cy="48" r="7" fill="#FFE600" />
-        </g>
-
-        {/* Coqueiros e Folhagens Tropicais — Canto Superior Direito */}
-        <g stroke="#141414" strokeWidth="2.5" strokeLinejoin="round">
-          <path d="M610 95 Q 535 85 485 145 Q 545 125 610 135 Z" fill="#FFE600" />
-          <path d="M585 -10 Q 505 25 455 105 Q 525 65 585 35 Z" fill="#00E5FF" />
-          <path d="M515 -10 Q 445 15 405 95 Q 465 35 475 -10 Z" fill="#00E5FF" />
-          <path d="M610 35 Q 545 45 505 115 Q 565 85 610 75 Z" fill="#FF4081" />
-          <circle cx="572" cy="48" r="22" fill="#FFFFFF" />
-          <circle cx="572" cy="48" r="7" fill="#FFE600" />
-        </g>
-
-        {/* Globos Terrestres Turquesa nas Laterais Superiores */}
-        <g stroke="#141414" strokeWidth="2.5">
-          <circle cx="22" cy="235" r="64" fill="#26C6DA" />
-          <path
-            d="M-15 195 Q 15 205 35 185 Q 55 215 28 245 Q 5 265 -10 280 Z"
-            fill="#66BB6A"
-          />
-          <circle cx="578" cy="235" r="64" fill="#26C6DA" />
-          <path
-            d="M615 195 Q 585 205 565 185 Q 545 215 572 245 Q 595 265 610 280 Z"
-            fill="#66BB6A"
-          />
-        </g>
-
-        {/* Raios Pop-Art Laterais (Meio-Superior) */}
-        <g stroke="#141414" strokeWidth="2.5" strokeLinejoin="round">
-          <polygon
-            points="-5,310 75,275 45,335 85,325 15,410 32,350 -5,360"
-            fill="#FF5722"
-          />
-          <polygon
-            points="-5,420 55,390 28,445 62,440 5,515 18,460 -5,468"
-            fill="#FFE600"
-          />
-          <polygon
-            points="605,310 525,275 555,335 515,325 585,410 568,350 605,360"
-            fill="#FF5722"
-          />
-          <polygon
-            points="605,420 545,390 572,445 538,440 595,515 582,460 605,468"
-            fill="#FFE600"
-          />
-        </g>
-
-        {/* Bocas / Lábios Pop-Art nas Laterais Médias */}
-        <g stroke="#141414" strokeWidth="2.5">
-          {/* Esquerda */}
-          <path
-            d="M-10 555 C 25 535, 65 565, 68 615 C 65 665, 25 685, -10 670 Z"
-            fill="#FF3D00"
-          />
-          <path
-            d="M-5 575 C 22 565, 48 585, 50 615 C 48 645, 22 660, -5 650 Z"
-            fill="#141414"
-          />
-          <path d="M-5 575 Q 20 572 38 586 L -5 588 Z" fill="#FFFFFF" />
-          <path d="M-5 630 Q 25 615 44 636 Q 22 655 -5 648 Z" fill="#FF7043" />
-
-          {/* Direita */}
-          <path
-            d="M610 555 C 575 535, 535 565, 532 615 C 535 665, 575 685, 610 670 Z"
-            fill="#FF3D00"
-          />
-          <path
-            d="M605 575 C 578 565, 552 585, 550 615 C 552 645, 578 660, 605 650 Z"
-            fill="#141414"
-          />
-          <path d="M605 575 Q 580 572 562 586 L 605 588 Z" fill="#FFFFFF" />
-          <path d="M605 630 Q 575 615 556 636 Q 578 655 605 648 Z" fill="#FF7043" />
-        </g>
-
-        {/* Ondas do Mar com Espuma Branca nos Cantos Inferiores */}
-        <g stroke="#141414" strokeWidth="2.5" strokeLinejoin="round">
-          {/* Onda Inferior Esquerda */}
-          <path
-            d="M-10 735 Q 65 730 118 795 Q 135 825 115 855 L 85 835 Q 65 865 45 905 L -10 905 Z"
-            fill="#26C6DA"
-          />
-          <path
-            d="M-10 725 Q 72 720 128 795 Q 142 825 122 860 Q 105 840 92 820 Q 65 765 -10 755 Z"
-            fill="#FFFFFF"
-          />
-          {/* Onda Inferior Direita */}
-          <path
-            d="M610 735 Q 535 730 482 795 Q 465 825 485 855 L 515 835 Q 535 865 555 905 L 610 905 Z"
-            fill="#26C6DA"
-          />
-          <path
-            d="M610 725 Q 528 720 472 795 Q 458 825 478 860 Q 495 840 508 820 Q 535 765 610 755 Z"
-            fill="#FFFFFF"
-          />
-        </g>
-      </svg>
-
-      {/* 2. Topo Central: Globo 3D do Planeta + Data na Saba em Atlântida */}
-      <div
-        className={`relative z-10 flex flex-col items-center text-center px-12 ${
-          isSquare ? "pt-2 pb-0.5" : "pt-3 pb-1"
-        }`}
-      >
-        {/* Emblema SVG do Globo 3D com o "a" Orbital */}
-        <svg
-          viewBox="0 0 220 135"
-          className={isSquare ? "w-28 sm:w-32 h-auto" : "w-36 sm:w-40 h-auto"}
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <radialGradient id="planeta-globe" cx="40%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#29B6F6" />
-              <stop offset="55%" stopColor="#0277BD" />
-              <stop offset="100%" stopColor="#002F56" />
-            </radialGradient>
-            <path
-              id="planeta-arc-text"
-              d="M 48 92 A 62 62 0 1 1 172 92"
-            />
-          </defs>
-
-          {/* Globo Azul */}
-          <circle
-            cx="110"
-            cy="76"
-            r="50"
-            fill="url(#planeta-globe)"
-            stroke="#012A4A"
-            strokeWidth="2"
-          />
-
-          {/* Texto Arqueado ao Redor do Globo */}
-          <text
-            fill="#FFFFFF"
-            fontSize="11.5"
-            fontWeight="900"
-            letterSpacing="1.2"
-          >
-            <textPath href="#planeta-arc-text" startOffset="50%" textAnchor="middle">
-              {lineup.title.slice(0, 22)}
-            </textPath>
-          </text>
-
-          {/* Anel Orbital Vermelho-Laranja */}
-          <path
-            d="M 48 96 C 42 78, 82 58, 132 52 C 168 48, 178 62, 162 76"
-            stroke="#E64A19"
-            strokeWidth="9"
-            strokeLinecap="round"
-            fill="none"
-          />
-
-          {/* Letra "a" 3D Dourada Central Fiel ao Logo do Planeta */}
-          <g transform="translate(76, 36)">
-            {/* Sombra 3D Laranja Escura */}
-            <path
-              d="M48 26 C48 10, 12 10, 10 24 L24 26 C25 20, 35 20, 35 26 L35 30 L20 32 C6 34, 4 50, 18 54 C26 56, 33 52, 36 48 L36 54 L50 54 L50 26 Z M35 38 C35 44, 22 46, 20 40 C19 36, 28 35, 35 35 Z"
-              fill="#BF360C"
-              transform="translate(-3, 4)"
-            />
-            {/* Face Frontal Amarelo-Ouro */}
-            <path
-              d="M48 26 C48 10, 12 10, 10 24 L24 26 C25 20, 35 20, 35 26 L35 30 L20 32 C6 34, 4 50, 18 54 C26 56, 33 52, 36 48 L36 54 L50 54 L50 26 Z M35 38 C35 44, 22 46, 20 40 C19 36, 28 35, 35 35 Z"
-              fill="#FFB300"
-              stroke="#E65100"
-              strokeWidth="1.5"
-            />
-          </g>
-        </svg>
-
-        {/* Subtítulo de Data e Local em Branco Bold (como "3 E 4 DE FEVEREIRO / NA SABA, EM ATLÂNTIDA") */}
-        <div className="leading-none -mt-1">
-          <p className="font-sans font-black text-[9px] sm:text-[10.5px] uppercase tracking-wider text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-            3 E 4 DE FEVEREIRO
-          </p>
-          <p className="font-sans font-black text-[8px] sm:text-[9.5px] uppercase tracking-wider text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-            NA SABA, EM ATLÂNTIDA · {lineup.subtitle.split("·")[0].trim()}
-          </p>
-        </div>
+      {/* 1. COLUNA ILUSTRADA ESQUERDA (Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas + Linha Preta Vertical) */}
+      <div className="relative h-full w-[18.5%] flex-shrink-0 overflow-hidden">
+        <img
+          src="/images/planeta-rail-left.png"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-fill pointer-events-none select-none"
+        />
       </div>
 
-      {/* 3. Bloco Central Único de Lineup (100% dos 45 Artistas em Preto Forte Sobre o Gradiente Solar) */}
+      {/* 2. PALCO CENTRAL: Globo 3D com Letra Centralizada + Saba em Atlântida + Lineup Uniforme + Rodapé Oficial */}
       <div
-        className={`relative z-10 flex-1 flex flex-col justify-evenly items-center text-center px-10 sm:px-14 overflow-hidden ${
-          isSquare ? "py-0.5 gap-0.5" : "py-1.5 gap-1"
+        className={`relative z-10 flex-1 h-full flex flex-col justify-between items-center text-center overflow-hidden ${
+          isSquare ? "px-2 py-1.5" : "px-2 py-2.5"
         }`}
       >
-        {/* LINHA 1: 3 Headliners Principais Lado a Lado Separados por Raios (⚡) */}
-        <div className="w-full flex items-center justify-center gap-2 sm:gap-3">
-          {row1Headliners.map((artist, idx) => {
-            const lines = stackPlanetaHeadliner(artist.name);
-            const isShort = artist.name.length <= 7;
-            return (
-              <React.Fragment key={artist.id}>
-                <div className="text-center leading-none">
-                  {lines.map((line, lIdx) => (
-                    <span
-                      key={lIdx}
-                      className={`block font-sans font-black uppercase text-[#141414] ${
-                        isSquare
-                          ? isShort
-                            ? "text-sm sm:text-base tracking-wide"
-                            : "text-[11px] sm:text-xs tracking-tight"
-                          : isShort
-                          ? "text-base sm:text-lg tracking-wide"
-                          : "text-xs sm:text-sm tracking-tight"
-                      }`}
-                      style={{ lineHeight: "0.94" }}
-                    >
-                      {line}
-                    </span>
-                  ))}
-                </div>
-                {idx < row1Headliners.length - 1 && (
-                  <svg
-                    viewBox="0 0 16 24"
-                    className={`${isSquare ? "w-2.5 h-3.5" : "w-3 h-4"} flex-shrink-0`}
-                    fill={idx === 0 ? "#FF5722" : "#00B8D4"}
-                  >
-                    <polygon points="10,0 0,14 7,14 4,24 16,9 9,9" />
-                  </svg>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-
-        {/* LINHA 2: 4 Co-Headliners Lado a Lado Separados por Pontos Coloridos */}
-        <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2.5 flex-wrap">
-          {row2CoHeadliners.map((artist, idx) => {
-            const isShort = artist.name.length <= 6;
-            return (
-              <React.Fragment key={artist.id}>
-                <span
-                  className={`font-sans font-black uppercase text-[#141414] ${
-                    isSquare
-                      ? isShort
-                        ? "text-xs sm:text-[13px] tracking-wider"
-                        : "text-[9.5px] sm:text-[11px] tracking-tight"
-                      : isShort
-                      ? "text-sm sm:text-[15px] tracking-wider"
-                      : "text-[11px] sm:text-xs tracking-tight"
-                  }`}
-                  style={{ lineHeight: "0.98" }}
-                >
-                  {artist.name}
-                </span>
-                {idx < row2CoHeadliners.length - 1 && (
-                  <span
-                    className={`font-black text-[10px] leading-none ${
-                      dotColors[idx % dotColors.length]
-                    }`}
-                  >
-                    •
-                  </span>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-
-        {/* LINHAS 3 e 4: Sub-Headliners Médios (Ex: JÃO • DILSINHO • GLORIA GROOVE) */}
-        {[row3SubA, row4SubB].map((subRow, sIdx) => (
-          <div
-            key={sIdx}
-            className="w-full flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap leading-none"
+        {/* TOPO: Globo Azul 3D + Letra Dourada Centralizada no Meio + "3 E 4 DE FEVEREIRO / NA SABA, EM ATLÂNTIDA" */}
+        <div className="w-full flex flex-col items-center">
+          <svg
+            viewBox="0 0 280 172"
+            className={
+              isSquare
+                ? "w-28 sm:w-32 h-auto -mb-1"
+                : "w-36 sm:w-40 h-auto -mb-1"
+            }
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            {subRow.map((artist, idx) => {
-              const isShort = artist.name.length <= 6;
+            <defs>
+              <radialGradient id="planeta-sphere-3d" cx="36%" cy="28%" r="72%">
+                <stop offset="0%" stopColor="#58C9F7" />
+                <stop offset="28%" stopColor="#1E88E5" />
+                <stop offset="68%" stopColor="#0D47A1" />
+                <stop offset="100%" stopColor="#051E42" />
+              </radialGradient>
+
+              <linearGradient id="planeta-letter-gold" x1="0%" y1="0%" x2="25%" y2="100%">
+                <stop offset="0%" stopColor="#FFE548" />
+                <stop offset="55%" stopColor="#FFB300" />
+                <stop offset="100%" stopColor="#F57C00" />
+              </linearGradient>
+
+              <linearGradient id="planeta-ring-top" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#E64A19" />
+                <stop offset="50%" stopColor="#FF5722" />
+                <stop offset="100%" stopColor="#D84315" />
+              </linearGradient>
+
+              {/* Arco para o Nome do Festival ao redor do topo do Globo */}
+              <path
+                id="planeta-title-arc"
+                d="M 52 108 A 88 88 0 1 1 228 108"
+              />
+
+              <clipPath id="globe-clip">
+                <circle cx="140" cy="104" r="56" />
+              </clipPath>
+            </defs>
+
+            {/* Metade Traseira do Anel Orbital */}
+            <g transform="rotate(-15 140 104)">
+              <path
+                d="M 46 104 A 94 25 0 0 1 234 104"
+                stroke="#8D1F05"
+                strokeWidth="11"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <path
+                d="M 46 101 A 94 25 0 0 1 234 101"
+                stroke="#D84315"
+                strokeWidth="6.5"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </g>
+
+            {/* Esfera Azul 3D Principal (Centro Exato em cx=140, cy=104) */}
+            <circle
+              cx="140"
+              cy="104"
+              r="56"
+              fill="url(#planeta-sphere-3d)"
+              stroke="#072652"
+              strokeWidth="1.5"
+            />
+
+            {/* Grade de Meridianos e Paralelos na Esfera */}
+            <g clipPath="url(#globe-clip)" stroke="#64B5F6" strokeOpacity="0.32" strokeWidth="1" fill="none">
+              <ellipse cx="140" cy="70" rx="52" ry="11" />
+              <ellipse cx="140" cy="92" rx="58" ry="14" />
+              <ellipse cx="140" cy="116" rx="58" ry="14" />
+              <ellipse cx="140" cy="138" rx="52" ry="11" />
+              <ellipse cx="140" cy="104" rx="16" ry="56" />
+              <ellipse cx="140" cy="104" rx="34" ry="56" />
+              <ellipse cx="140" cy="104" rx="49" ry="56" />
+              <line x1="140" y1="48" x2="140" y2="160" />
+            </g>
+
+            {/* Brilho Especular Superior Esquerdo */}
+            <ellipse
+              cx="116"
+              cy="78"
+              rx="16"
+              ry="10"
+              transform="rotate(-25 116 78)"
+              fill="#FFFFFF"
+              fillOpacity="0.22"
+            />
+
+            {/* Nome do Festival Arqueado na Fonte Geométrica Larga do Planeta */}
+            <text
+              fill="#141414"
+              stroke="#141414"
+              strokeWidth="4.5"
+              strokeLinejoin="round"
+              paintOrder="stroke"
+              fontSize={displayArcTitle.length > 18 ? "13.5" : "16"}
+              fontWeight="900"
+              letterSpacing="0.8"
+              fontFamily="var(--font-inter), sans-serif"
+              transform="translate(1.8, 2.2)"
+            >
+              <textPath href="#planeta-title-arc" startOffset="50%" textAnchor="middle">
+                {displayArcTitle}
+              </textPath>
+            </text>
+            <text
+              fill="#FFFFFF"
+              stroke="#141414"
+              strokeWidth="2"
+              strokeLinejoin="round"
+              paintOrder="stroke"
+              fontSize={displayArcTitle.length > 18 ? "13.5" : "16"}
+              fontWeight="900"
+              letterSpacing="0.8"
+              fontFamily="var(--font-inter), sans-serif"
+            >
+              <textPath href="#planeta-title-arc" startOffset="50%" textAnchor="middle">
+                {displayArcTitle}
+              </textPath>
+            </text>
+
+            {/* LETRA 3D DOURADA CENTRALIZADA EXATAMENTE NO MEIO DO GLOBO (cx=140, cy=104) NA FONTE DO PLANETA */}
+            <g>
+              <text
+                x="145"
+                y="109"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#041530"
+                fillOpacity="0.45"
+                fontSize="64"
+                fontWeight="900"
+                fontFamily="var(--font-inter), sans-serif"
+              >
+                {letter}
+              </text>
+              <text
+                x="143.5"
+                y="107.5"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#871900"
+                stroke="#681200"
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+                paintOrder="stroke"
+                fontSize="64"
+                fontWeight="900"
+                fontFamily="var(--font-inter), sans-serif"
+              >
+                {letter}
+              </text>
+              <text
+                x="141.8"
+                y="105.8"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#BF360C"
+                stroke="#871900"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+                paintOrder="stroke"
+                fontSize="64"
+                fontWeight="900"
+                fontFamily="var(--font-inter), sans-serif"
+              >
+                {letter}
+              </text>
+              <text
+                x="140"
+                y="104"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="url(#planeta-letter-gold)"
+                stroke="#D84315"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+                paintOrder="stroke"
+                fontSize="64"
+                fontWeight="900"
+                fontFamily="var(--font-inter), sans-serif"
+              >
+                {letter}
+              </text>
+            </g>
+
+            {/* Metade Frontal do Anel Orbital 3D */}
+            <g transform="rotate(-15 140 104)">
+              <path
+                d="M 234 108 A 94 25 0 0 1 46 108"
+                stroke="#9A1B00"
+                strokeWidth="10"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <path
+                d="M 234 104 A 94 25 0 0 1 46 104"
+                stroke="url(#planeta-ring-top)"
+                strokeWidth="7.5"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <path
+                d="M 222 106 A 86 22 0 0 1 58 106"
+                stroke="#FFAB40"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="none"
+                opacity="0.7"
+              />
+            </g>
+          </svg>
+
+          {/* Informações Clássicas do Planeta Atlântida Restauradas Abaixo do Globo */}
+          <div className="leading-none -mt-0.5">
+            <p
+              className={`font-sans font-black uppercase tracking-wider text-white drop-shadow-[0_1.2px_2px_rgba(0,0,0,0.35)] ${
+                isSquare ? "text-[8px] sm:text-[9px]" : "text-[8.5px] sm:text-[9.5px]"
+              }`}
+            >
+              3 E 4 DE FEVEREIRO
+            </p>
+            <p
+              className={`font-sans font-black uppercase tracking-wider text-white drop-shadow-[0_1.2px_2px_rgba(0,0,0,0.35)] mt-[1px] ${
+                isSquare ? "text-[6.8px] sm:text-[7.5px]" : "text-[7px] sm:text-[8px]"
+              }`}
+            >
+              NA SABA, EM ATLÂNTIDA · {lineup.subtitle.split("·")[0].trim()}
+            </p>
+          </div>
+        </div>
+
+        {/* 3. BLOCO DE LINEUP COM RITMO VERTICAL UNIFORME ENTRE TODAS AS FILEIRAS (Fiel ao Cartaz de 2023) */}
+        <div
+          className={`w-full flex-1 flex flex-col justify-between items-center text-center overflow-hidden ${
+            isSquare ? "py-1.5" : "py-2"
+          }`}
+        >
+          {/* LINHA 1: 3 Headliners Principais Lado a Lado Separados por Raios (⚡) */}
+          <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2">
+            {row1Headliners.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, 9);
+              const maxLineChars = Math.max(...lines.map((l) => l.length));
               return (
                 <React.Fragment key={artist.id}>
-                  <span
-                    className={`font-sans font-extrabold uppercase text-[#141414] ${
-                      isSquare
-                        ? isShort
-                          ? "text-[10px] sm:text-[11px] tracking-wider"
-                          : "text-[9px] sm:text-[10px] tracking-tight"
-                        : isShort
-                        ? "text-xs sm:text-[13px] tracking-wider"
-                        : "text-[10px] sm:text-[11.5px] tracking-tight"
-                    }`}
-                  >
-                    {artist.name}
-                  </span>
-                  {idx < subRow.length - 1 && (
+                  <div className="text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className={`block font-sans font-black uppercase text-[#141414] whitespace-nowrap ${
+                          isSquare
+                            ? maxLineChars > 13
+                              ? "text-[9.5px] sm:text-[10.5px] tracking-tighter"
+                              : "text-[11px] sm:text-xs tracking-tight"
+                            : maxLineChars > 13
+                            ? "text-[9px] sm:text-[10px] tracking-tighter"
+                            : "text-[10.5px] sm:text-xs tracking-tight"
+                        }`}
+                        style={{ lineHeight: "0.92" }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx < row1Headliners.length - 1 && (
+                    <svg
+                      viewBox="0 0 16 24"
+                      className="w-2.5 h-3.5 flex-shrink-0"
+                      fill={idx === 0 ? "#FF5722" : "#0097A7"}
+                    >
+                      <polygon points="10,0 0,14 7,14 4,24 16,9 9,9" />
+                    </svg>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 2: 4 Co-Headliners em 1 ÚNICA FILEIRA (Nomes compostos empilhados em 2 linhas como "JOTA / QUEST • LUAN / SANTANA • LUDMILLA • LUÍSA / SONZA") */}
+          <div className="w-full flex items-center justify-center gap-1 sm:gap-1.5 leading-none">
+            {row2CoHeadliners.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, 9);
+              const maxLineChars = Math.max(...lines.map((l) => l.length));
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className={`font-sans font-black uppercase text-[#141414] whitespace-nowrap ${
+                          isSquare
+                            ? maxLineChars > 14
+                              ? "text-[7.5px] sm:text-[8.5px] tracking-tighter"
+                              : "text-[9px] sm:text-[10px] tracking-tight"
+                            : maxLineChars > 14
+                            ? "text-[7px] sm:text-[7.8px] tracking-tighter"
+                            : "text-[8.2px] sm:text-[9.2px] tracking-tight"
+                        }`}
+                        style={{ lineHeight: lines.length > 1 ? "0.92" : "0.98" }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx < row2CoHeadliners.length - 1 && (
                     <span
-                      className={`font-black text-[9px] leading-none ${
-                        dotColors[(sIdx + idx) % dotColors.length]
+                      className={`font-black text-[8px] leading-none flex-shrink-0 ${
+                        dotColors[idx % dotColors.length]
                       }`}
                     >
                       •
@@ -377,37 +517,41 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
               );
             })}
           </div>
-        ))}
 
-        {/* LINHAS 5 A 12: Undercard Completo (Todos os 32 artistas restantes até 45) */}
-        <div className={`w-full ${isSquare ? "space-y-0.5 pt-0.5" : "space-y-1 pt-0.5"}`}>
-          {undercardRows.map((row, rIdx) => (
+          {/* LINHAS 3 e 4: Sub-Headliners Médios (3 Artistas por Fileira, Empilhando Nomes Compostos > 12 Letras) */}
+          {[row3SubHeadliners, row4SubHeadliners].map((subRow, sIdx) => (
             <div
-              key={rIdx}
-              className="w-full flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0 leading-none"
+              key={`sub-${sIdx}`}
+              className="w-full flex items-center justify-center gap-1.5 sm:gap-2 leading-none"
             >
-              {row.map((artist, aIdx) => {
-                const isShort = artist.name.length <= 6;
+              {subRow.map((artist, idx) => {
+                const lines = stackPlanetaName(artist.name, 11);
+                const maxLineChars = Math.max(...lines.map((l) => l.length));
                 return (
                   <React.Fragment key={artist.id}>
-                    <span
-                      className={`font-sans font-extrabold uppercase text-[#141414] ${
-                        isSquare
-                          ? isShort
-                            ? "text-[8px] sm:text-[9px] tracking-wider"
-                            : "text-[7.2px] sm:text-[8px] tracking-tight"
-                          : isShort
-                          ? "text-[9px] sm:text-[10px] tracking-wider"
-                          : "text-[8px] sm:text-[9px] tracking-tight"
-                      }`}
-                      style={{ lineHeight: "1.06" }}
-                    >
-                      {artist.name}
-                    </span>
-                    {aIdx < row.length - 1 && (
+                    <div className="inline-flex flex-col items-center text-center leading-none">
+                      {lines.map((line, lIdx) => (
+                        <span
+                          key={lIdx}
+                          className={`font-sans font-extrabold uppercase text-[#141414] whitespace-nowrap ${
+                            isSquare
+                              ? maxLineChars > 14
+                                ? "text-[7.8px] sm:text-[8.6px] tracking-tighter"
+                                : "text-[8.8px] sm:text-[9.8px] tracking-tight"
+                              : maxLineChars > 14
+                              ? "text-[7.2px] sm:text-[8px] tracking-tighter"
+                              : "text-[8px] sm:text-[8.8px] tracking-tight"
+                          }`}
+                          style={{ lineHeight: lines.length > 1 ? "0.92" : "0.98" }}
+                        >
+                          {line}
+                        </span>
+                      ))}
+                    </div>
+                    {idx < subRow.length - 1 && (
                       <span
-                        className={`font-black text-[7px] sm:text-[8px] leading-none ${
-                          dotColors[(rIdx + aIdx) % dotColors.length]
+                        className={`font-black text-[7.5px] leading-none flex-shrink-0 ${
+                          dotColors[(sIdx + idx) % dotColors.length]
                         }`}
                       >
                         •
@@ -418,44 +562,87 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
               })}
             </div>
           ))}
+
+          {/* LINHAS 5 a 12: Undercard Equalizado (4 Artistas por Fileira, Irmãos Diretos no Flexbox para Espaçamento Vertical Perfeito!) */}
+          {undercardRows.map((row, rIdx) => {
+            const rowChars = row.reduce((acc, a) => acc + a.name.length, 0);
+            return (
+              <div
+                key={`under-${rIdx}`}
+                className="w-full flex items-center justify-center gap-x-1 sm:gap-x-1.5 leading-none whitespace-nowrap"
+              >
+                {row.map((artist, aIdx) => (
+                  <React.Fragment key={artist.id}>
+                    <span
+                      className={`font-sans font-extrabold uppercase text-[#141414] whitespace-nowrap ${
+                        isSquare
+                          ? rowChars > 46
+                            ? "text-[6.8px] sm:text-[7.5px] tracking-tighter"
+                            : "text-[7.5px] sm:text-[8.4px] tracking-tight"
+                          : rowChars > 42
+                          ? "text-[6.2px] sm:text-[6.8px] tracking-tighter"
+                          : "text-[6.8px] sm:text-[7.5px] tracking-tight"
+                      }`}
+                      style={{ lineHeight: "1.0" }}
+                    >
+                      {artist.name}
+                    </span>
+                    {aIdx < row.length - 1 && (
+                      <span
+                        className={`font-black text-[6.5px] leading-none flex-shrink-0 ${
+                          dotColors[(rIdx + aIdx) % dotColors.length]
+                        }`}
+                      >
+                        •
+                      </span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 4. RODAPÉ OFICIAL PLANETA ATLÂNTIDA RESTAURADO: Slogan + Site + Pílula Coral-Laranja */}
+        <div className="w-full flex flex-col items-center text-center pt-0.5">
+          <div className="w-28 h-[1.5px] bg-[#0097A7] mb-0.5" />
+
+          <p
+            className={`font-sans font-black uppercase tracking-wider text-[#141414] leading-none ${
+              isSquare ? "text-[8.5px] sm:text-[9.5px]" : "text-[9px] sm:text-[10px]"
+            }`}
+          >
+            O PLANETA VOLTA A GIRAR
+          </p>
+          <p className="font-sans font-bold text-[6px] sm:text-[6.8px] uppercase tracking-widest text-[#141414]/80 mt-[1px]">
+            PLANETAFESTIQ.COM.BR
+          </p>
+
+          <div
+            className={`mt-0.5 px-3.5 rounded-full bg-[#F4511E] text-white flex items-center justify-center gap-2 font-sans font-black uppercase tracking-wider shadow-sm ${
+              isSquare
+                ? "py-0.5 text-[6.5px] sm:text-[7px]"
+                : "py-1 text-[7px] sm:text-[8px]"
+            }`}
+          >
+            <span className="px-1 py-[1px] bg-[#D50000] rounded text-white">
+              FESTIQ
+            </span>
+            <span>SPOTIFY API</span>
+            <span>•</span>
+            <span>{isSquare ? "1080×1080" : "1080×1920"}</span>
+          </div>
         </div>
       </div>
 
-      {/* 4. Rodapé Oficial Planeta Atlântida: Slogan + Pílula Coral-Laranja */}
-      <div
-        className={`relative z-10 flex flex-col items-center text-center px-8 ${
-          isSquare ? "pb-2 pt-0.5" : "pb-3 pt-1"
-        }`}
-      >
-        {/* Linha Divisória Ciano */}
-        <div className="w-36 h-[2px] bg-[#00B8D4] mb-1" />
-
-        <p
-          className={`font-sans font-black uppercase tracking-wider text-[#141414] leading-none ${
-            isSquare ? "text-[9.5px] sm:text-[11px]" : "text-[11px] sm:text-xs"
-          }`}
-        >
-          O PLANETA VOLTA A GIRAR
-        </p>
-        <p className="font-sans font-bold text-[6.5px] sm:text-[7.5px] uppercase tracking-widest text-[#141414]/80 mt-0.5">
-          PLANETAFESTIQ.COM.BR
-        </p>
-
-        {/* Pílula Coral de Assinatura (como a barra vermelha inferior do cartaz oficial) */}
-        <div
-          className={`mt-1 px-5 rounded-full bg-[#F4511E] text-white flex items-center justify-center gap-3 font-sans font-black uppercase tracking-wider shadow-sm ${
-            isSquare
-              ? "py-1 text-[7px] sm:text-[8px]"
-              : "py-1.5 text-[8px] sm:text-[9px]"
-          }`}
-        >
-          <span className="px-1.5 py-0.5 bg-[#D50000] rounded text-white">
-            FESTIQ
-          </span>
-          <span>SPOTIFY API</span>
-          <span>•</span>
-          <span>{isSquare ? "1080×1080" : "1080×1920"}</span>
-        </div>
+      {/* 5. COLUNA ILUSTRADA DIREITA (Linha Preta Vertical + Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas) */}
+      <div className="relative h-full w-[18.5%] flex-shrink-0 overflow-hidden">
+        <img
+          src="/images/planeta-rail-right.png"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-fill pointer-events-none select-none"
+        />
       </div>
     </div>
   );

@@ -40,16 +40,23 @@ const THEMES: { id: FestivalThemeId; name: string; tag: string; bg: string; text
   {
     id: "tropical",
     name: "Planeta Atlântida",
-    tag: "Tributo ao Planeta",
-    bg: "bg-gradient-to-b from-[#F5A3B7] to-[#FCE373]",
+    tag: "Letra 3D + Surf Pop",
+    bg: "bg-gradient-to-b from-[#F69FB5] to-[#FCE46E]",
     text: "text-[#141414]",
   },
   {
     id: "retro",
-    name: "Imprensa Retrô",
-    tag: "Prensa Tipográfica 70s",
-    bg: "bg-[#F5EBE1]",
-    text: "text-[#7F1D1D]",
+    name: "Impresso '85",
+    tag: "Jornal Rock in Rio 85",
+    bg: "bg-[#E4D8C1]",
+    text: "text-[#1F1C19]",
+  },
+  {
+    id: "c6fest",
+    name: "C6 Minimal",
+    tag: "Tributo ao C6 Fest",
+    bg: "bg-[#000000] ring-1 ring-inset ring-[#E05378]/60",
+    text: "text-[#E6D15A]",
   },
 ];
 
@@ -73,9 +80,10 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
 }) => {
   const quickSuggestions = [
     "FESTIQ STUDIO",
-    "FORESTFEST 2026",
-    `${userName.toUpperCase()}PALOOZA`,
+    "C6 FEST",
+    "ROCK IN RIO",
     `PLANETA ${userName.toUpperCase()}`,
+    `${userName.toUpperCase()}PALOOZA`,
   ];
 
   return (
@@ -190,7 +198,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
         <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
           Tema Visual do Festival
         </span>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
           {THEMES.map((t) => {
             const isSelected = themeId === t.id;
             return (
@@ -198,18 +206,18 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
                 key={t.id}
                 type="button"
                 onClick={() => onThemeChange(t.id)}
-                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all relative overflow-hidden active:scale-[0.97] ${
+                className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all relative overflow-hidden active:scale-[0.97] ${
                   isSelected
                     ? "border-[#CEFF00] ring-2 ring-[#CEFF00]/40 bg-[#1E1E1E] shadow-xl"
                     : "border-[#2B2B2B] bg-[#1A1A1A] hover:border-[#404040] opacity-85 hover:opacity-100"
                 }`}
               >
                 <div
-                  className={`w-full h-10 rounded-lg ${t.bg} border border-white/10 mb-2 flex items-center justify-center font-display font-black text-xs ${t.text} shadow-inner`}
+                  className={`w-full h-9 rounded-lg ${t.bg} border border-white/10 mb-2 flex items-center justify-center font-display font-black text-xs ${t.text} shadow-inner`}
                 >
                   FESTIQ
                 </div>
-                <span className="font-display font-black text-sm text-white leading-tight">
+                <span className="font-display font-black text-xs sm:text-sm text-white leading-tight truncate w-full">
                   {t.name}
                 </span>
                 <span className="text-[10px] font-mono text-[#A3A3A3] line-clamp-1 mt-0.5">

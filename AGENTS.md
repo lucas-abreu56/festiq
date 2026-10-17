@@ -13,8 +13,9 @@ Aplicação web que consome dados da Spotify Web API e gera lineups comemorativo
 2. **Propriedade Intelectual dos Temas de Festivais**:
    - Os templates visuais inspirados em festivais consagrados (*Lollapalooza*, *Rock in Rio*, *Planeta Atlântida*) são tributos/homenagens com arte e identidade própria do Festiq.
    - É proibido reproduzir logotipos corporativos oficiais protegidos, marcas de patrocinadores ou sugerir endosso/parceria oficial.
-3. **Resolução de Exportação Obrigatória**:
-   - Todos os pôsteres exportados devem ter exatamente a proporção **9:16** e dimensões de **1080 × 1920 pixels**, sem cortes em nomes de artistas ou vazamento fora da borda útil.
+3. **Resolução de Exportação e Integridade de Nomes Obrigatória (`Zero-Truncate Rule`)**:
+   - Todos os pôsteres exportados devem suportar as proporções **9:16** (**1080 × 1920 pixels**) e **1:1** (**1080 × 1080 pixels**), sem cortes em nomes de artistas ou vazamento fora da borda útil.
+   - **Proibição Absoluta de Truncamento:** É estritamente proibido usar `truncate`, `text-ellipsis` ou cortar caracteres (`.slice()`) em nomes de artistas ou bandas em qualquer pôster. Mesmo bandas com nomes enormes (ex.: *Red Hot Chili Peppers*, *Engenheiros do Hawaii*, *The Rolling Stones*) devem aparecer 100% inteiras por meio de quebra equilibrada de linhas e redução proporcional do tamanho da fonte.
 
 ---
 
@@ -42,12 +43,17 @@ Aplicação web que consome dados da Spotify Web API e gera lineups comemorativo
 
 - **Rolagem Suave**: Utilizar o padrão Lenis configurado de acordo com a skill `lenis-setup`.
 - **Anti-Genérico**: Seguir o checklist de `entrar-em-projeto` e `criar-interface`. Proibido kickers/eyebrows acima de títulos, gradientes genéricos roxo-azul, fake terminals ou cards bento repetitivos.
-- **Tipografia Adaptativa**: Headliners recebem prioridade máxima e quebra inteligente em até 2 linhas; undercard tem ajuste dinâmico de tamanho para nunca sobrepor elementos.
+- **Tipografia Adaptativa (Zero-Truncate)**: Headliners recebem prioridade máxima e quebra inteligente em até 2 linhas (ou conectores empilhados `OF / THE`, `DO`, `DE`); undercard tem ajuste dinâmico de tamanho e agrupamento equalizado para nunca cortar letras nem sobrepor elementos.
+- **Equalização de Fileiras (`Row Equalizer`) e Proibição de Linhas Órfãs**: Em pôsteres com linhas justificadas (`justify-between`) ou em pirâmide (`LollaWaveTheme`, `FestifyTheme`, `TropicalTheme`), nunca usar agrupamento sequencial cego que deixe 1 ou 2 artistas sozinhos na linha com buracos no meio. Sempre fixar a quantidade de artistas por linha (3–4 no Lolla/Planeta, 4–6 no Festify), empilhar nomes compostos longos em 2 linhas nas fileiras intermediárias e equalizar a soma de caracteres entre fileiras trocando nomes longos por curtos.
+- **Irmãos Diretos no Flexbox Vertical**: Todas as fileiras de artistas (do 1º headliner à última linha do undercard) devem ser filhas diretas do mesmo container flex vertical (`justify-between`). Nunca envolver o undercard inteiro em uma `<div>` aninhada dentro de um container `justify-evenly`, pois isso distorce a distribuição vertical.
 
 ---
 
 ## 5. Armadilhas deste Projeto
 
+- **Geometria `1:1` (`540 × 540`) vs. `9:16` (`360 × 640`) no `PosterCanvas`**: A base lógica do formato `1:1` tem `540px` de largura (**50% mais larga em pixels** que os `360px` do `9:16`). Reduzir o tamanho da fonte quando `isSquare === true` cria buracos horizontais enormes; no `1:1`, as fontes e o orçamento de caracteres por linha devem ser iguais ou maiores que no `9:16`.
+- **Fontes Google no `next build` Offline/Sandbox**: Não adicionar novas fontes em `next/font/google` que exijam download externo durante builds sem rede; reutilizar as variáveis já cacheadas (`--font-oswald`, `--font-inter`, `--font-playfair`, `--font-mono`) aplicando `-webkit-text-stroke` calibrado quando for necessário peso ultra-condensado pesado (`font-lolla`).
 - **Spotify Auth em Modo Desenvolvimento:** Contas de teste precisam estar adicionadas na aba *User Management* do dashboard do Spotify, caso contrário o login retorna erro de permissão.
-- **Exportação com `html-to-image`:** Imagens externas e fontes personalizadas precisam estar totalmente embutidas (data-uri ou fontes carregadas) para evitar que o canvas gere PNG com fontes padrão ou falhas de CORS.
+- **Exportação com `html-to-image`:** Imagens externas e fontes personalizadas precisam estar totalmente embutidas (data-uri ou fontes locais/cacheadas) para evitar que o canvas gere PNG com fontes padrão ou falhas de CORS.
 - **`check-ignore` antes de criar arquivos locais:** Sempre valide `git check-ignore -v <arquivo>` para qualquer arquivo `*.local.md`.
+

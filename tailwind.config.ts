@@ -70,6 +70,7 @@ const config: Config = {
         framaExtra: ["'PP Frama Extrabold Italic'", "sans-serif"],
         sans: ["var(--font-inter)", "sans-serif"],
         display: ["var(--font-oswald)", "'PP Frama Bold'", "Impact", "sans-serif"],
+        lolla: ["var(--font-oswald)", "Impact", "'Arial Black'", "sans-serif"],
         serif: ["var(--font-playfair)", "serif"],
         mono: ["var(--font-mono)", "monospace"],
       },

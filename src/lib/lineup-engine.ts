@@ -1,6 +1,6 @@
 import { SpotifyArtist, MOCK_ARTISTS } from "./mock-artists";
 
-export type FestivalThemeId = "lolla" | "festify" | "tropical" | "retro";
+export type FestivalThemeId = "lolla" | "festify" | "tropical" | "retro" | "c6fest";
 export type CreationMode = "taste" | "genre" | "popularity";
 export type TimeRange = "short_term" | "medium_term" | "long_term";
 export type PosterAspectRatio = "9:16" | "1:1";
