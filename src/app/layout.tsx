@@ -30,6 +30,14 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Festiq — Your Taste. Your Festival.",
   description: "Transforme seus artistas mais ouvidos do Spotify em um festival personalizado e pôster 9:16 em alta resolução.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "Festiq — Your Taste. Your Festival.",
     description: "Crie o pôster do seu festival de música personalizado com base no que você ouve no Spotify.",
