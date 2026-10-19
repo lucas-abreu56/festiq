@@ -48,7 +48,7 @@ export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
             id="festiq-poster-export-root"
             data-aspect-ratio={lineup.aspectRatio}
             className="relative overflow-hidden poster-export-node"
-            style={{ width: `${baseWidth}px`, height: `${baseHeight}px` }}
+            style={{ width: `${baseWidth}px`, height: `${baseHeight}px`, containerType: "inline-size" }}
           >
             {renderTheme()}
           </div>
@@ -61,6 +61,7 @@ export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
       <div
         ref={ref}
         id="festiq-poster-preview"
+        style={{ containerType: "inline-size" }}
         className={`w-full transition-all duration-300 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] border border-brand-border/80 ${
           isSquare
             ? "max-w-[480px] sm:max-w-[540px] aspect-square"

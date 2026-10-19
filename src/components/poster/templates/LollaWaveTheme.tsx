@@ -89,9 +89,41 @@ function formatHeadlinerLines(name: string): HeadlinerLine[] {
   ];
 }
 
+/**
+ * Empilha nomes compostos longos do undercard em 2 linhas equilibradas quando excedem 15 caracteres
+ * (ex: "SOPHIA CHABLAU / E UMA ENORME PERDA DE TEMPO", "QUEENS OF THE / STONE AGE", "RED HOT / CHILI PEPPERS"),
+ * garantindo que a largura da linha não estoure a coluna amarela e cumprindo a Zero-Truncate Rule.
+ */
+function formatUndercardArtistName(name: string): string[] {
+  const clean = name.trim().toUpperCase();
+  if (clean.length <= 11 || !clean.includes(" ")) {
+    return [clean];
+  }
+  const words = clean.split(/\s+/);
+  if (words.length === 2) {
+    return [words[0], words[1]];
+  }
+  let bestIdx = Math.ceil(words.length / 2);
+  let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const l1 = words.slice(0, i).join(" ").length;
+    const l2 = words.slice(i).join(" ").length;
+    const diff = Math.abs(l1 - l2);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+  return [words.slice(0, bestIdx).join(" "), words.slice(bestIdx).join(" ")];
+}
+
 function getRowCharWeight(row: SpotifyArtist[]): number {
-  const letters = row.reduce((acc, a) => acc + a.name.length, 0);
-  const dots = Math.max(0, row.length - 1) * 3;
+  const letters = row.reduce((acc, a) => {
+    const lines = formatUndercardArtistName(a.name);
+    const maxLine = Math.max(...lines.map((l) => l.length));
+    return acc + maxLine;
+  }, 0);
+  const dots = Math.max(0, row.length - 1) * 2.5;
   return letters + dots;
 }
 
@@ -348,53 +380,61 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
 
         {/* COLUNA DIREITA (61.6%): 35 Artistas do Undercard em Fileiras Equalizadas (3 a 4 Artistas) Justificadas Ponta a Ponta */}
-        <div className="w-[61.6%] flex flex-col justify-between text-left pl-2 pr-4 sm:pr-5 py-0.5">
+        <div className="w-[61.6%] flex flex-col justify-between text-left pl-1.5 pr-2.5 sm:pr-3 py-0.5 overflow-hidden">
           {undercardRows.map((row, rIdx) => {
             const totalRowWeight = getRowCharWeight(row);
 
-            // Como todas as linhas foram equalizadas para ~36-44 caracteres, o tamanho da fonte é
-            // consistente em todo o bloco amarelo, ajustando apenas 1px caso uma linha seja mais densa.
-            const rowSizeClass = isSquare
-              ? totalRowWeight > 46
-                ? "text-[11px] sm:text-[12.2px]"
-                : totalRowWeight > 41
-                ? "text-[11.8px] sm:text-[13.2px]"
-                : "text-[12.6px] sm:text-[14px]"
+            // Escala adaptativa geométrica calibrada via cqw (container query width):
+            // Garante 100% de visibilidade de todos os nomes sem jamais cortar na lateral direita
+            const fontSizeStyle = isSquare
+              ? totalRowWeight > 44
+                ? "clamp(8.8px, 2.05cqw, 11.5px)"
+                : totalRowWeight > 38
+                ? "clamp(9.5px, 2.22cqw, 12.5px)"
+                : "clamp(10.2px, 2.4cqw, 13.5px)"
               : totalRowWeight > 44
-              ? "text-[8.8px] sm:text-[9.6px]"
-              : totalRowWeight > 39
-              ? "text-[9.5px] sm:text-[10.4px]"
-              : "text-[10.2px] sm:text-[11.2px]";
+              ? "clamp(6.8px, 1.95cqw, 9.2px)"
+              : totalRowWeight > 38
+              ? "clamp(7.4px, 2.15cqw, 10.2px)"
+              : "clamp(8.0px, 2.3cqw, 11.0px)";
 
             return (
               <div
                 key={rIdx}
-                className="w-full flex items-center justify-between leading-none whitespace-nowrap"
+                className="w-full flex items-center justify-between leading-none overflow-hidden"
               >
-                {row.map((artist, aIdx) => (
-                  <React.Fragment key={artist.id}>
-                    <span
-                      className={`font-lolla font-black uppercase text-[#181818] tracking-[-0.01em] whitespace-nowrap ${rowSizeClass}`}
-                      style={{
-                        lineHeight: "0.94",
-                        WebkitTextStroke: "0.35px #181818",
-                      }}
-                    >
-                      {artist.name}
-                    </span>
-                    {aIdx < row.length - 1 && (
-                      <span
-                        className={`text-[#26B6D4] font-sans font-black leading-none mx-0.5 select-none ${
-                          isSquare
-                            ? "text-[9px] sm:text-[10px]"
-                            : "text-[7.5px] sm:text-[8.5px]"
-                        }`}
+                {row.map((artist, aIdx) => {
+                  const lines = formatUndercardArtistName(artist.name);
+                  return (
+                    <React.Fragment key={artist.id}>
+                      <div
+                        className="inline-flex flex-col items-center justify-center text-center font-lolla font-black uppercase text-[#181818] tracking-[-0.01em]"
+                        style={{
+                          fontSize: fontSizeStyle,
+                          lineHeight: lines.length > 1 ? "0.86" : "0.94",
+                          WebkitTextStroke: "0.32px #181818",
+                        }}
                       >
-                        •
-                      </span>
-                    )}
-                  </React.Fragment>
-                ))}
+                        {lines.map((line, lIdx) => (
+                          <span key={lIdx} className="whitespace-nowrap">
+                            {line}
+                          </span>
+                        ))}
+                      </div>
+                      {aIdx < row.length - 1 && (
+                        <span
+                          className={`text-[#26B6D4] font-sans font-black leading-none mx-[2px] select-none ${
+                            isSquare
+                              ? "text-[8px] sm:text-[9px]"
+                              : "text-[7px] sm:text-[8px]"
+                          }`}
+                        >
+                          •
+                        </span>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </div>
             );
           })}

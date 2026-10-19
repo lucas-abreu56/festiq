@@ -51,15 +51,15 @@ function buildFestifyUndercardRows(
 ): SpotifyArtist[][] {
   if (artists.length === 0) return [];
 
-  // Em 1:1 (540px): 7 fileiras (quatro de 6 artistas + três de 5 artistas = 39)
-  // Em 9:16 (360px): 8 fileiras (sete de 5 artistas + uma de 4 artistas = 39)
-  const pattern = isSquare ? [6, 6, 6, 6, 5, 5, 5] : [5, 5, 5, 5, 5, 5, 5, 4];
+  // Em 1:1 e 9:16: 8 fileiras de 4 a 5 artistas (sete de 5 artistas + uma de 4 artistas = 39 artistas)
+  // Mantendo espaçamento lateral confortável entre nomes sem sobreposição
+  const pattern = [5, 5, 5, 5, 5, 5, 5, 4];
   const rows: SpotifyArtist[][] = [];
   let cursor = 0;
   let pIdx = 0;
 
   while (cursor < artists.length) {
-    const size = pattern[pIdx] ?? (isSquare ? 5 : 4);
+    const size = pattern[pIdx] ?? 5;
     rows.push(artists.slice(cursor, cursor + size));
     cursor += size;
     pIdx++;
@@ -224,15 +224,14 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {mainHeadliner && (
           <div className="text-center w-full">
             <span
-              className={`block font-sans font-extrabold uppercase text-[#0D0D0D] leading-none ${
-                mainHeadliner.name.length > 22
-                  ? isSquare
-                    ? "text-lg sm:text-xl tracking-[0.04em]"
-                    : "text-base sm:text-lg tracking-[0.03em]"
-                  : isSquare
-                  ? "text-xl sm:text-[23px] tracking-[0.06em]"
-                  : "text-xl sm:text-2xl tracking-[0.05em]"
-              }`}
+              className="block font-sans font-extrabold uppercase text-[#0D0D0D] leading-none"
+              style={{
+                fontSize:
+                  mainHeadliner.name.length > 20
+                    ? "clamp(15px, 4.2cqw, 20px)"
+                    : "clamp(17px, 5.0cqw, 24px)",
+                letterSpacing: "0.05em",
+              }}
             >
               {mainHeadliner.name}
             </span>
@@ -241,7 +240,7 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
         {/* Nível 2: 2 Co-Headliners em 1 Linha com Gap Equilibrado */}
         <div
-          className={`w-full max-w-[82%] flex items-center justify-around text-center`}
+          className={`w-full max-w-[85%] flex items-center justify-around text-center`}
         >
           {row2CoHeadliners.map((artist) => {
             const lines = stackFestifyLines(artist.name, 16);
@@ -250,12 +249,12 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 {lines.map((line, lIdx) => (
                   <span
                     key={lIdx}
-                    className={`font-sans font-bold uppercase text-[#0D0D0D] whitespace-nowrap ${
-                      isSquare
-                        ? "text-sm sm:text-[16px] tracking-[0.05em]"
-                        : "text-[13px] sm:text-[15px] tracking-[0.04em]"
-                    }`}
-                    style={{ lineHeight: lines.length > 1 ? "0.94" : "1.02" }}
+                    className="font-sans font-bold uppercase text-[#0D0D0D] whitespace-nowrap"
+                    style={{
+                      fontSize: "clamp(11.5px, 3.2cqw, 16px)",
+                      letterSpacing: "0.04em",
+                      lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                    }}
                   >
                     {line}
                   </span>
@@ -266,25 +265,20 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
 
         {/* Nível 3: 3 Sub-Headliners SEMPRE em 1 Única Linha Horizontal (Empilhando Nomes Longos em 2 Linhas) */}
-        <div className="w-full max-w-[92%] flex items-center justify-between text-center">
+        <div className="w-full max-w-[94%] flex items-center justify-between text-center">
           {row3SubHeadliners.map((artist) => {
             const lines = stackFestifyLines(artist.name, 13);
-            const maxLine = Math.max(...lines.map((l) => l.length));
             return (
               <div key={artist.id} className="inline-flex flex-col items-center leading-none">
                 {lines.map((line, lIdx) => (
                   <span
                     key={lIdx}
-                    className={`font-sans font-semibold uppercase text-[#0D0D0D] whitespace-nowrap ${
-                      isSquare
-                        ? maxLine > 15
-                          ? "text-[10.5px] sm:text-xs tracking-[0.02em]"
-                          : "text-xs sm:text-[13.5px] tracking-[0.04em]"
-                        : maxLine > 15
-                        ? "text-[9.5px] sm:text-[10.5px] tracking-[0.02em]"
-                        : "text-[11px] sm:text-xs tracking-[0.03em]"
-                    }`}
-                    style={{ lineHeight: lines.length > 1 ? "0.94" : "1.02" }}
+                    className="font-sans font-semibold uppercase text-[#0D0D0D] whitespace-nowrap"
+                    style={{
+                      fontSize: "clamp(9.5px, 2.6cqw, 13px)",
+                      letterSpacing: "0.03em",
+                      lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                    }}
                   >
                     {line}
                   </span>
@@ -296,35 +290,32 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
         {/* Fileiras do Undercard (Irmãs Diretas no Flexbox para Preencher Verticalmente até a Cabana sem Buracos) */}
         {undercardRows.map((row, rIdx) => {
-          const isShorterRow = row.length <= (isSquare ? 5 : 4);
+          const isShorterRow = row.length <= 4;
           return (
             <div
               key={rIdx}
               className={`w-full ${
-                isShorterRow ? "max-w-[88%]" : "max-w-[96%]"
-              } flex items-center justify-between text-center`}
+                isShorterRow ? "max-w-[86%]" : "max-w-[98%]"
+              } flex items-center justify-between text-center px-1`}
             >
               {row.map((artist) => {
                 const lines = stackFestifyLines(artist.name, 11);
-                const maxLine = Math.max(...lines.map((l) => l.length));
                 return (
                   <div
                     key={artist.id}
-                    className="inline-flex flex-col items-center justify-center text-center leading-none"
+                    className="inline-flex flex-col items-center justify-center text-center leading-none px-0.5 sm:px-1"
                   >
                     {lines.map((line, lIdx) => (
                       <span
                         key={lIdx}
-                        className={`font-sans font-semibold uppercase text-[#141414] whitespace-nowrap ${
-                          isSquare
-                            ? maxLine > 14
-                              ? "text-[7.2px] sm:text-[8.2px] tracking-[0.01em]"
-                              : "text-[8.2px] sm:text-[9.2px] tracking-[0.03em]"
-                            : maxLine > 14
-                            ? "text-[6.8px] sm:text-[7.5px] tracking-[0.01em]"
-                            : "text-[7.6px] sm:text-[8.5px] tracking-[0.025em]"
-                        }`}
-                        style={{ lineHeight: lines.length > 1 ? "0.95" : "1.02" }}
+                        className="font-sans font-semibold uppercase text-[#141414] whitespace-nowrap"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(7.5px, 1.9cqw, 9.5px)"
+                            : "clamp(6.8px, 1.95cqw, 8.8px)",
+                          letterSpacing: "0.02em",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
                       >
                         {line}
                       </span>
@@ -341,7 +332,7 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
       <div className="relative z-10 w-full mt-auto bg-white">
         <svg
           viewBox="0 0 600 185"
-          className={`w-full block ${isSquare ? "h-[112px] sm:h-[124px]" : "h-[142px] sm:h-[160px]"}`}
+          className={`w-full block ${isSquare ? "h-[85px] sm:h-[98px]" : "h-[105px] sm:h-[120px]"}`}
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="xMidYBottom meet"
@@ -586,7 +577,7 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
         <div
           className={`w-full bg-white flex items-center justify-center relative px-6 ${
-            isSquare ? "pb-2 pt-0.5" : "pb-3.5 pt-1"
+            isSquare ? "pb-1.5 pt-0.5" : "pb-2 pt-0.5"
           }`}
         >
           <span className="font-sans font-black text-sm sm:text-base uppercase tracking-[0.06em] text-[#2B6EF2]">

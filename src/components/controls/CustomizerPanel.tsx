@@ -152,17 +152,30 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
           >
             Nome do Festival
           </label>
-          <span className="text-[10px] font-mono text-[#A3A3A3]">
-            Padrão: FESTIQ STUDIO
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-[11px] font-mono font-bold ${
+                festivalName.length >= 20
+                  ? "text-[#FF3EBA]"
+                  : festivalName.length >= 16
+                  ? "text-[#CEFF00]"
+                  : "text-[#A3A3A3]"
+              }`}
+            >
+              {festivalName.length}/20
+            </span>
+            <span className="text-[10px] font-mono text-[#737373]">
+              · Padrão: FESTIQ STUDIO
+            </span>
+          </div>
         </div>
         <div className="flex gap-2">
           <input
             id="festival-name-input"
             type="text"
             value={festivalName}
-            maxLength={32}
-            onChange={(e) => onFestivalNameChange(e.target.value)}
+            maxLength={20}
+            onChange={(e) => onFestivalNameChange(e.target.value.slice(0, 20))}
             className="flex-1 bg-[#1E1E1E] border border-[#2B2B2B] rounded-xl px-4 py-3 text-sm font-display font-bold uppercase tracking-wider text-white placeholder-[#737373] focus:outline-none focus:border-[#CEFF00] transition-colors"
             placeholder="FESTIQ STUDIO (DIGITE PARA ALTERAR)"
           />

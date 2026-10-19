@@ -42,24 +42,91 @@ export function deduplicateArtists(artists: SpotifyArtist[]): SpotifyArtist[] {
   });
 }
 
+export const GENRE_TAXONOMY: Record<string, string[]> = {
+  rock: [
+    "rock", "punk", "metal", "grunge", "hardcore", "shoegaze", "post-punk",
+    "new wave", "emo", "alternative rock", "indie rock", "garage rock",
+    "psychedelic rock", "classic rock", "glam rock", "hard rock", "art rock",
+    "math rock", "noise rock", "stoner rock", "folk rock", "gothic rock",
+    "melodic hardcore", "post-hardcore", "blues rock", "southern rock"
+  ],
+  metal: [
+    "metal", "heavy metal", "death metal", "black metal", "thrash", "doom metal",
+    "nu metal", "sludge", "power metal", "metalcore", "progressive metal", "alternative metal"
+  ],
+  pop: [
+    "pop", "dance pop", "synthpop", "electropop", "hyperpop", "indie pop",
+    "art pop", "teen pop", "k-pop", "j-pop", "latin pop", "bedroom pop"
+  ],
+  "hip hop": [
+    "hip hop", "rap", "trap", "boom bap", "drill", "conscious hip hop",
+    "gangsta rap", "alternative hip hop", "southern hip hop", "rap nacional",
+    "brazilian hip hop", "west coast rap", "east coast rap"
+  ],
+  indie: [
+    "indie", "alternative", "dream pop", "chamber pop", "lo-fi", "twee pop",
+    "chillwave", "bedroom pop", "indie folk", "indie rock", "indie pop"
+  ],
+  electronic: [
+    "electronic", "techno", "house", "edm", "ambient", "downtempo", "idm",
+    "drum and bass", "electro", "trance", "synthwave", "dubstep", "trip hop",
+    "french house", "deep house", "brazilian edm", "dance"
+  ],
+  mpb: [
+    "mpb", "samba", "bossa nova", "tropicalia", "brazilian", "choro",
+    "pagode", "forro", "axe", "samba-pop", "brazilian pop", "afrobeat"
+  ],
+  sertanejo: [
+    "sertanejo", "sertanejo universitario", "sertanejo raiz", "modão",
+    "arrocha", "agronejo"
+  ],
+  reggae: [
+    "reggae", "dub", "dancehall", "ska", "roots reggae", "rocksteady", "reggaeton"
+  ],
+};
+
 /**
- * Filtra e enriquece artistas por gênero musical
+ * Verifica se um artista pertence ao gênero alvo segundo suas tags do Spotify
+ */
+export function artistMatchesGenre(artist: SpotifyArtist, targetGenre: string): boolean {
+  const normalizedTarget = targetGenre.toLowerCase().trim();
+  const keywords = GENRE_TAXONOMY[normalizedTarget] || [normalizedTarget];
+  return (artist.genres || []).some((g) => {
+    const normG = g.toLowerCase();
+    return keywords.some((kw) => normG.includes(kw));
+  });
+}
+
+/**
+ * Filtra e enriquece artistas por gênero musical respeitando a ordem de afinidade do usuário
+ * e garantindo que JAMAIS artistas de outros gêneros sejam inseridos (Zero-Pollution Rule).
  */
 export function filterArtistsByGenre(
   artists: SpotifyArtist[],
   targetGenre: string
 ): SpotifyArtist[] {
-  const normalizedTarget = targetGenre.toLowerCase();
-  const matched = artists.filter((a) =>
-    a.genres.some((g) => g.toLowerCase().includes(normalizedTarget))
-  );
+  // 1. Filtra artistas do próprio usuário que combinam com o gênero, preservando a ordem original (mais escutados primeiro)
+  let matched = artists.filter((a) => artistMatchesGenre(a, targetGenre));
 
-  // Se tiver menos de 20, complementa do mock geral filtrado pelo gênero
-  if (matched.length < 20) {
-    const fallbackFromMock = MOCK_ARTISTS.filter((a) =>
-      a.genres.some((g) => g.toLowerCase().includes(normalizedTarget))
-    );
-    return deduplicateArtists([...matched, ...fallbackFromMock]);
+  // 2. Se o usuário tiver menos de 45 artistas desse gênero, complementa exclusivamente com artistas do mesmo gênero do mock
+  if (matched.length < 45) {
+    const fallbackFromMock = MOCK_ARTISTS.filter((a) => artistMatchesGenre(a, targetGenre));
+    matched = deduplicateArtists([...matched, ...fallbackFromMock]);
+  }
+
+  // 3. Se ainda tiver menos de 45 artistas específicos deste gênero, cicla os próprios artistas do gênero
+  // JAMAIS importando o MOCK geral de outros gêneros
+  if (matched.length < 45 && matched.length > 0) {
+    const validPool = [...matched];
+    let i = 0;
+    while (matched.length < 45) {
+      const art = validPool[i % validPool.length];
+      matched.push({
+        ...art,
+        id: `${art.id}-repeat-${matched.length}`,
+      });
+      i++;
+    }
   }
 
   return matched;
@@ -100,8 +167,9 @@ export function buildFestivalLineup({
     processed = sortArtistsByPopularity(processed);
   }
 
-  // Se ainda tiver menos de 30 artistas, completa com o mock
-  if (processed.length < 30) {
+  // Completa com o mock geral APENAS nos modos 'taste' ou 'popularity' quando houver menos de 30 artistas.
+  // No modo 'genre', a integridade do gênero já foi estritamente garantida por filterArtistsByGenre.
+  if (mode !== "genre" && processed.length < 30) {
     processed = deduplicateArtists([...processed, ...MOCK_ARTISTS]);
   }
 
