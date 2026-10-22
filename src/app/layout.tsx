@@ -28,8 +28,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Festiq — Your Taste. Your Festival.",
-  description: "Transforme seus artistas mais ouvidos do Spotify em um festival personalizado e pôster 9:16 em alta resolução.",
+  metadataBase: new URL("https://festiq.lucasschwingel.com"),
+  title: "Festiq · Seu Spotify em cartaz de festival",
+  description:
+    "Transforme seus 45 artistas mais ouvidos no Spotify em pôsteres de festival nos formatos vertical (9:16) e quadrado (1:1).",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -39,9 +41,19 @@ export const metadata: Metadata = {
     apple: "/apple-icon.png",
   },
   openGraph: {
-    title: "Festiq — Your Taste. Your Festival.",
-    description: "Crie o pôster do seu festival de música personalizado com base no que você ouve no Spotify.",
+    title: "Festiq · Seu Spotify em cartaz de festival",
+    description:
+      "Gere o pôster do seu festival com os seus 45 artistas mais ouvidos no Spotify em 5 temas visuais para Stories (9:16) e Feed (1:1).",
+    url: "/",
+    siteName: "Festiq Studio",
+    locale: "pt_BR",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Festiq · Seu Spotify em cartaz de festival",
+    description:
+      "Gere o pôster do seu festival com os seus 45 artistas mais ouvidos no Spotify em 5 temas visuais para Stories (9:16) e Feed (1:1).",
   },
 };
 

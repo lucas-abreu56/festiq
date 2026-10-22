@@ -57,7 +57,7 @@ export const ExportBar: React.FC<ExportBarProps> = ({ festivalName, aspectRatio 
       setIsExporting(true);
       setExportError(null);
       const dataUrl = await exportPosterAsPng(exportNode);
-      const shared = await sharePosterImage(dataUrl, `${effectiveName} — Festiq`);
+      const shared = await sharePosterImage(dataUrl, `${effectiveName} · Festiq`);
 
       if (!shared) {
         const formatTag = isSquare ? "1080x1080" : "1080x1920";

@@ -1,60 +1,56 @@
-# Festiq (iq) — Your Taste. Your Festival.
+# Festiq Studio (`iq`)
 
-Aplicação web responsiva que transforma preferências musicais e estatísticas de escuta do Spotify em lineups customizados e cartazes de festivais de música de alta fidelidade visual, formatados para compartilhamento em redes sociais (9:16 / 1080 × 1920 pixels).
+Aplicação web que transforma os seus 45 artistas mais ouvidos no Spotify em lineups e cartazes de festival para compartilhamento em Stories (`9:16`, `1080 × 1920 px`) e Feed (`1:1`, `1080 × 1080 px`).
 
----
+## O que o projeto faz
 
-## Recursos Principais
+O Festiq conecta via OAuth 2.0 PKCE à Spotify Web API para ler os artistas mais tocados nas últimas 4 semanas, nos últimos 6 meses ou em todo o histórico da conta. Quem quiser testar sem login pode usar o modo de demonstração com 45 artistas já carregados.
 
-- **Conexão Segura com Spotify (OAuth 2.0 PKCE):** Coleta dados dos artistas mais tocados nos períodos de 4 semanas, 6 meses ou todo o histórico.
-- **5 Temas Visuais Exclusivos (Tributos Criativos):**
-  1. *Indie Waves* (homenagem gráfica ao Lollapalooza Brasil, com divisão bicromática e undercard equalizado)
-  2. *Planeta Tropical* (homenagem ao Planeta Atlântida com tipografia oficial, colunas ilustradas e letra 3D dinâmica A–Z)
-  3. *Forestfest* (estética de floresta inspirada no Festify com balanceamento por comprimento de nomes)
-  4. *Impresso '85* (grade de 10 dias jornalística estilo Rock in Rio 1985 / vintage letterpress)
-  5. *C6 Minimal* (íris concêntrica multicolorida de 378 pontos com lineup A a Z contínuo)
-- **Formatos Duplos:** Suporte nativo para **9:16 (Stories/Reels - 1080 × 1920 px)** e **1:1 (Feed/Quadrado - 1080 × 1080 px)**.
-- **Motor Tipográfico Adaptativo (Zero-Truncate Rule):** Algoritmo que quebra e equaliza nomes longos em 2 linhas sem nunca cortar caracteres (`truncate`/`...`), mantendo 100% dos nomes das bandas íntegros.
-- **Retratos Reais de Artistas:** Integração com a API da Deezer para exibir fotos reais dos artistas do topo do lineup.
-- **Exportação em Alta Resolução:** Renderização local instantânea em PNG e suporte à Web Share API nativa.
-- **Sem Cadastro:** Não exige criação de conta para criar ou baixar o pôster.
+O motor tipográfico distribui os 45 nomes sem truncar caracteres (`...`), quebrando nomes compostos em até duas linhas balanceadas e buscando retratos reais dos headliners na API pública da Deezer. A exportação gera o PNG localmente no navegador em resolução nativa e integra com a Web Share API no celular.
 
----
+### Temas visuais (tributos gráficos)
 
-## Como Rodar Localmente
+1. **Indie Waves:** divisão bicromática inspirada no Lollapalooza Brasil com undercard equalizado.
+2. **Planeta Atlântida:** colunas ilustradas, estética surf pop e letra 3D dinâmica (`A` a `Z`).
+3. **Forestfest:** inspirado no Festify, com balanceamento por comprimento de nomes.
+4. **Impresso '85:** grade jornalística de 10 dias inspirada no Rock in Rio de 1985.
+5. **C6 Minimal:** íris concêntrica multicolorida de 378 pontos com lineup contínuo de `A` a `Z`.
+
+## Como rodar localmente
 
 ### 1. Pré-requisitos
 - Node.js 18+ ou 20+
-- Conta de desenvolvedor no [Spotify for Developers](https://developer.spotify.com/dashboard)
+- Aplicação criada no [Spotify for Developers](https://developer.spotify.com/dashboard)
 
-### 2. Configurar Variáveis de Ambiente
+### 2. Variáveis de ambiente
 Copie o arquivo de exemplo e preencha suas credenciais:
 ```bash
 cp .env.example .env.local
 ```
 
-Edite o arquivo `.env.local`:
+Edite `.env.local`:
 ```env
 SPOTIFY_CLIENT_ID=seu_client_id_aqui
 SPOTIFY_CLIENT_SECRET=seu_client_secret_aqui
 NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
 ```
 
-> No painel do Spotify Developer Dashboard, adicione a Redirect URI (o Spotify exige o IP explícito 127.0.0.1 em vez de localhost):  
-> `http://127.0.0.1:3000/api/auth/callback`
+No painel do Spotify Developer Dashboard, cadastre a Redirect URI usando o IP explícito `127.0.0.1` (exigência do Spotify no lugar de `localhost`):
+```text
+http://127.0.0.1:3000/api/auth/callback
+```
 
-### 3. Instalar Dependências e Executar
+### 3. Instalação e execução
 ```bash
 npm install
 npm run dev
 ```
 Acesse `http://127.0.0.1:3000`.
 
----
+## Atribuições, privacidade e isenção legal
 
-## Atribuições, Privacidade e Isenção Legal
+Os dados musicais são lidos em tempo de execução pela Spotify Web API. O Festiq não é afiliado, patrocinado nem endossado pelo Spotify AB; todas as marcas relacionadas pertencem aos seus respectivos proprietários.
 
-- **Spotify Web API**: Dados musicais consumidos exclusivamente em tempo de execução via Spotify Web API. O Festiq não é afiliado, patrocinado ou endossado pelo Spotify AB. Todas as marcas e marcas registradas relacionadas ao Spotify pertencem aos seus respectivos proprietários.
-- **Privacidade e Dados Efêmeros**: O Festiq não possui banco de dados persistente e não armazena históricos de escuta ou credenciais. O token OAuth PKCE é mantido estritamente em cookies protegidos de sessão temporária no cliente.
-- **Identidades Visuais & Propriedade Intelectual**: Os modelos visuais são homenagens e paródias de design inspiradas na cultura de grandes festivais de música. Não utilizam logotipos oficiais de patrocinadores nem sugerem parceria comercial.
-- **Licença de Código Aberto**: Distribuído sob a [Licença MIT](LICENSE). Consulte o arquivo `LICENSE` para termos completos de isenção de responsabilidade.
+A aplicação não usa banco de dados e não armazena histórico de escuta nem credenciais. O token OAuth PKCE fica restrito a cookies `HttpOnly` de sessão temporária no navegador do usuário.
+
+Os temas visuais são homenagens e paródias gráficas inspiradas na cultura de festivais de música, sem uso de logotipos oficiais de patrocinadores nem vínculo comercial. Código distribuído sob a [Licença MIT](LICENSE).

@@ -108,7 +108,7 @@ export default function HomePage() {
                 </span>
               </div>
               <span className="text-[10px] font-mono text-[#A3A3A3] tracking-widest uppercase">
-                Your Music · Official Festival Posters
+                Seu Spotify em cartaz de festival
               </span>
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function HomePage() {
             Crie seu festival dos sonhos a partir da sua música.
           </h1>
           <p className="text-base text-[#A3A3A3] mt-2 leading-relaxed">
-            Gere pôsteres comemorativos autênticos nos formatos vertical (9:16) e quadrado (1:1), com 100% dos 45 artistas legíveis e sem cortes.
+            Monte pôsteres nos formatos vertical (9:16) e quadrado (1:1) com os seus 45 artistas mais ouvidos legíveis e sem cortes.
           </p>
         </div>
 
@@ -240,7 +240,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-frama font-black italic text-[#F7F6EB] text-sm">FESTIQ STUDIO</span>
-            <span>—</span>
+            <span>·</span>
             <p>Criador de lineups e pôsteres comemorativos integrados à Spotify Web API.</p>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
