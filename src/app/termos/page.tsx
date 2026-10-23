@@ -1,5 +1,10 @@
 import Link from "next/link";
 
+export const metadata = {
+  title: "Termos de Uso | Festiq",
+  description: "Termos de uso, isenções legais e diretrizes para compartilhamento dos cartazes gerados no Festiq.",
+};
+
 export default function TermsPage() {
   return (
     <main className="min-h-screen max-w-3xl mx-auto px-6 py-16 text-brand-text">

@@ -63,10 +63,33 @@ npm run dev
 ```
 Acesse `http://127.0.0.1:3000`.
 
-## Atribuições, privacidade e isenção legal
+## Segurança, privacidade e como funciona a API do Spotify
 
-Os dados musicais são lidos em tempo de execução pela Spotify Web API. O Festiq não é afiliado, patrocinado nem endossado pelo Spotify AB; todas as marcas relacionadas pertencem aos seus respectivos proprietários.
+O Festiq foi concebido com privacidade estrita e arquitetura efêmera. A conexão com o Spotify utiliza o protocolo aberto **OAuth 2.0 com PKCE** (Proof Key for Code Exchange), o mesmo padrão de segurança adotado por grandes plataformas e serviços financeiros.
 
-A aplicação não usa banco de dados e não armazena histórico de escuta nem credenciais. O token OAuth PKCE fica restrito a cookies `HttpOnly` de sessão temporária no navegador do usuário.
+### 1. Sua senha nunca passa pelo Festiq
+Ao clicar em "Entrar com Spotify", o usuário é redirecionado diretamente para os servidores oficiais da plataforma (`accounts.spotify.com`). O processo de autenticação ocorre inteiramente no domínio do Spotify. O Festiq nunca tem acesso a senhas, números de cartão, endereço ou dados de faturamento.
 
-Os temas visuais são homenagens e paródias gráficas inspiradas na cultura de festivais de música, sem uso de logotipos oficiais de patrocinadores nem vínculo comercial. Código distribuído sob a [Licença MIT](LICENSE).
+### 2. Escopos de leitura restrita (menor privilégio)
+A aplicação solicita exclusivamente duas permissões de leitura:
+* `user-top-read`: lê a lista dos artistas e músicas mais ouvidos nos períodos selecionados para compor o pôster.
+* `user-read-private`: lê o primeiro nome de exibição do usuário para personalizar o título do festival.
+
+O Festiq não solicita permissões de escrita. O aplicativo não pode criar nem apagar playlists, não altera bibliotecas, não controla a reprodução e não executa ações na conta.
+
+### 3. Processamento efêmero sem banco de dados
+O Festiq não possui banco de dados relacional, NoSQL ou qualquer armazenamento de histórico de usuários. Os dados retornados pelo Spotify existem apenas na memória durante a montagem do cartaz e na sessão local do navegador. Quando o usuário sai ou fecha a aba, nada fica retido em servidores externos.
+
+### 4. Proteção de sessão com cookies HTTP-Only
+O token temporário retornado após a autorização é armazenado em cookie seguro com a flag `httpOnly`, atributo `sameSite: "lax"` e criptografia em trânsito (HTTPS). Isso previne que scripts maliciosos de terceiros no navegador tenham acesso direto ao token de acesso.
+
+### 5. Revogação de acesso
+O usuário pode encerrar o acesso de duas formas:
+1. **Pelo próprio Festiq:** clicando no botão "Sair" no cabeçalho, que limpa os cookies de sessão de forma imediata.
+2. **Pelo painel do Spotify:** acessando a página oficial de [aplicativos conectados do Spotify](https://www.spotify.com/account/apps) e clicando em "Remover acesso". A revogação invalida os tokens instantaneamente nos servidores do Spotify.
+
+## Atribuições e isenção legal
+
+Os dados musicais são consultados em tempo de execução pela Spotify Web API. O Festiq é um projeto independente e não possui afiliação, patrocínio ou endosso da Spotify AB. Todas as marcas, nomes de artistas e dados relacionados pertencem aos seus respectivos titulares.
+
+Os temas visuais são tributos artísticos e paródias gráficas que celebram a estética de festivais históricos, desenvolvidos com código e ilustrações próprias, sem incorporação de logotipos protegidos de patrocinadores ou organizadores. Código distribuído sob a [Licença MIT](LICENSE).

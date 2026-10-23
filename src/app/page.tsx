@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
 import {
   FestivalThemeId,
   CreationMode,
@@ -238,6 +239,20 @@ export default function HomePage() {
             <p>Criador de lineups e pôsteres comemorativos integrados à Spotify Web API.</p>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
+            <Link
+              href="/privacidade"
+              className="text-[#A3A3A3] hover:text-[#CEFF00] transition-colors underline-offset-4 hover:underline"
+            >
+              Privacidade
+            </Link>
+            <span>•</span>
+            <Link
+              href="/termos"
+              className="text-[#A3A3A3] hover:text-[#CEFF00] transition-colors underline-offset-4 hover:underline"
+            >
+              Termos
+            </Link>
+            <span>•</span>
             <span className="px-2 py-0.5 rounded bg-[#1E1E1E] text-[#CEFF00] font-bold">
               9:16 & 1:1 HQ
             </span>
