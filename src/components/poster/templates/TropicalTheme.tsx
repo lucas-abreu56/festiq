@@ -45,9 +45,15 @@ function stackPlanetaName(name: string, maxSingleChars: number): string[] {
     return [words[0], words[1]];
   }
 
-  // Se o nome for muito longo (> 26 caracteres e >= 4 palavras), quebra em 3 linhas
+  // Se o limite for muito restrito (<= 8 caracteres, como nos 3 headliners da linha 1):
+  if (maxSingleChars <= 8 && words.length >= 3) {
+    if (words.length === 3) return words;
+    if (words.length === 4) return [words.slice(0, 2).join(" "), words.slice(2).join(" ")];
+  }
+
+  // Se o nome for muito longo (> 24 caracteres e >= 4 palavras), quebra em 3 linhas
   // balanceadas para manter cada linha < 16 caracteres, blindando contra cortes laterais
-  if (clean.length > 26 && words.length >= 4) {
+  if (clean.length > 24 && words.length >= 4) {
     const t1 = Math.round(words.length / 3);
     const t2 = Math.round((words.length * 2) / 3);
     const p1 = words.slice(0, t1).join(" ");
@@ -472,7 +478,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           {/* LINHA 1: 3 Headliners Principais Lado a Lado Separados por Raios (⚡) */}
           <div className="w-full flex items-center justify-center gap-1.5">
             {row1Headliners.map((artist, idx) => {
-              const lines = stackPlanetaName(artist.name, 9);
+              const lines = stackPlanetaName(artist.name, 8);
               return (
                 <React.Fragment key={artist.id}>
                   <div className="text-center leading-none">
@@ -482,8 +488,8 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                         className="block font-sans font-black uppercase text-[#141414] whitespace-nowrap tracking-tight"
                         style={{
                           fontSize: isSquare
-                            ? "clamp(12px, 2.8cqw, 15px)"
-                            : "clamp(10.5px, 2.7cqw, 13.5px)",
+                            ? "clamp(11px, 2.6cqw, 13.5px)"
+                            : "clamp(9.8px, 2.5cqw, 12.5px)",
                           lineHeight: "0.92",
                         }}
                       >

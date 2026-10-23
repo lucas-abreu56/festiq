@@ -364,7 +364,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
             return (
               <div
                 key={rIdx}
-                className="w-full flex items-center justify-center flex-nowrap leading-none overflow-hidden"
+                className="w-full flex items-center justify-center flex-nowrap leading-none"
                 style={{ fontSize: fontSizeStyle }}
               >
                 {row.map((artist, aIdx) => {

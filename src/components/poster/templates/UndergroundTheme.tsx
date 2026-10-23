@@ -360,7 +360,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
           return (
             <div
               key={`under-${rIdx}`}
-              className="w-full flex items-center justify-center gap-x-2 px-1 leading-none overflow-hidden"
+              className="w-full flex items-center justify-center gap-x-2 px-1 leading-none"
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {

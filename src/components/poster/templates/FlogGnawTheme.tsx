@@ -308,7 +308,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           return (
             <div
               key={`top-${rIdx}`}
-              className="w-full flex items-center justify-center gap-x-1.5 leading-none overflow-hidden"
+              className="w-full flex items-center justify-center gap-x-1.5 leading-none"
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
@@ -488,7 +488,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           return (
             <div
               key={`bottom-${rIdx}`}
-              className="w-full flex items-center justify-center gap-x-1.5 leading-none overflow-hidden"
+              className="w-full flex items-center justify-center gap-x-1.5 leading-none"
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
