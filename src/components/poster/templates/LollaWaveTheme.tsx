@@ -91,9 +91,33 @@ function formatHeadlinerLines(name: string): HeadlinerLine[] {
 }
 
 /**
- * Agrupa os 35 artistas do undercard em linhas contínuas de 2 a 4 artistas (ou 1 solo para nomes muito longos),
- * mantendo cada artista 100% inteiro em uma única linha (sem quebrar nomes como "TRAVIS SCOTT" em 2 andares).
- * Em 9:16 gera ~14 a 16 linhas densas com texto ampliado e coeso, e em 1:1 gera ~10 a 12 linhas equilibradas.
+ * Empilha nomes solos longos no undercard (ex: "SOPHIA CHABLAU E UMA ENORME PERDA DE TEMPO")
+ * em 2 linhas perfeitamente equilibradas para que fiquem grandes e sem corte na coluna amarela.
+ */
+function stackLollaSoloName(name: string): string[] {
+  const clean = name.trim().toUpperCase();
+  if (clean.length <= 18 || !clean.includes(" ")) {
+    return [clean];
+  }
+  const words = clean.split(/\s+/);
+  if (words.length === 2) return [words[0], words[1]];
+  let bestIdx = Math.ceil(words.length / 2);
+  let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const l1 = words.slice(0, i).join(" ").length;
+    const l2 = words.slice(i).join(" ").length;
+    const diff = Math.abs(l1 - l2);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+  return [words.slice(0, bestIdx).join(" "), words.slice(bestIdx).join(" ")];
+}
+
+/**
+ * Agrupa os 35 artistas do undercard em linhas contínuas de 2 a 4 artistas (ou 1 solo para nomes longos),
+ * mantendo cada artista 100% legível com fonte ampliada e sem cortes.
  */
 function buildLollaUndercardRows(
   undercard: SpotifyArtist[],
@@ -101,8 +125,8 @@ function buildLollaUndercardRows(
 ): SpotifyArtist[][] {
   if (undercard.length === 0) return [];
 
-  const targetChars = isSquare ? 48 : 34;
-  const soloThreshold = isSquare ? 32 : 26;
+  const targetChars = isSquare ? 42 : 30;
+  const soloThreshold = isSquare ? 24 : 20;
 
   const rows: SpotifyArtist[][] = [];
   let currentRow: SpotifyArtist[] = [];
@@ -112,7 +136,7 @@ function buildLollaUndercardRows(
     const clean = artist.name.trim().toUpperCase();
     const len = clean.length;
 
-    // Se o nome for longo demais para caber com outro artista, dá uma linha solo
+    // Se o nome for longo para caber acompanhado, ganha linha solo com empilhamento
     if (len >= soloThreshold) {
       if (currentRow.length > 0) {
         rows.push(currentRow);
@@ -139,7 +163,7 @@ function buildLollaUndercardRows(
     rows.push(currentRow);
   }
 
-  // Equalização: se a última linha ficou com 1 artista muito curto e a anterior tem 3+, redistribui
+  // Equalização: se a última linha ficou com 1 artista curto e a anterior tem 3+, redistribui
   if (rows.length >= 2) {
     const lastRow = rows[rows.length - 1];
     const prevRow = rows[rows.length - 2];
@@ -269,15 +293,15 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
             const sizeStyle = isSquare
               ? maxEffectiveLen > 15
-                ? "clamp(13.5px, 2.9cqw, 16.5px)"
+                ? "clamp(14.5px, 3.1cqw, 17.5px)"
                 : maxEffectiveLen > 12
-                ? "clamp(15px, 3.3cqw, 18.5px)"
-                : "clamp(17px, 3.8cqw, 21.5px)"
+                ? "clamp(16px, 3.5cqw, 19.5px)"
+                : "clamp(18px, 4.0cqw, 22.5px)"
               : maxEffectiveLen > 15
-                ? "clamp(12px, 3.6cqw, 15px)"
+                ? "clamp(13px, 3.8cqw, 16px)"
                 : maxEffectiveLen > 12
-                ? "clamp(13.5px, 4.0cqw, 17px)"
-                : "clamp(15.5px, 4.5cqw, 19.5px)";
+                ? "clamp(14.5px, 4.2cqw, 18px)"
+                : "clamp(16.5px, 4.8cqw, 20.5px)";
 
             return (
               <div
@@ -290,8 +314,8 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
                     className="inline-flex items-center justify-end font-lolla font-black uppercase text-[#181818] tracking-[-0.02em] whitespace-nowrap"
                     style={{
                       fontSize: sizeStyle,
-                      lineHeight: lines.length > 1 ? "0.86" : "0.92",
-                      WebkitTextStroke: "0.5px #181818",
+                      lineHeight: lines.length > 1 ? "0.84" : "0.90",
+                      WebkitTextStroke: "0.52px #181818",
                     }}
                   >
                     <span>{lineObj.main}</span>
@@ -315,22 +339,27 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {/* COLUNA DIREITA (61.6%): 35 Artistas do Undercard em Fileiras Coesas, Nomes Maiores e Agrupados com Bullet */}
         <div className="w-[61.6%] flex flex-col justify-between text-center pl-1 pr-2.5 py-0.5 overflow-hidden">
           {undercardRows.map((row, rIdx) => {
-            const totalChars =
-              row.reduce((acc, a) => acc + a.name.length, 0) +
-              (row.length - 1) * 3;
+            const isSoloRow = row.length === 1;
+            const soloArtist = isSoloRow ? row[0] : null;
+            const isSoloLong = Boolean(soloArtist && soloArtist.name.trim().length > 18);
+            const soloLines = isSoloLong ? stackLollaSoloName(soloArtist!.name) : null;
 
-            // Escala adaptativa geométrica calibrada via cqw (container query width):
+            const effectiveChars = isSoloLong
+              ? Math.max(...soloLines!.map((l) => l.length))
+              : row.reduce((acc, a) => acc + a.name.length, 0) + (row.length - 1) * 3;
+
+            // Escala adaptativa geométrica ampliada via cqw:
             const fontSizeStyle = isSquare
-              ? totalChars > 45
-                ? "clamp(11.5px, 2.3cqw, 14px)"
-                : totalChars > 36
-                ? "clamp(12.5px, 2.5cqw, 15.5px)"
-                : "clamp(13.5px, 2.7cqw, 17px)"
-              : totalChars > 34
-                ? "clamp(10.2px, 2.7cqw, 12.5px)"
-                : totalChars > 26
-                ? "clamp(11.2px, 2.95cqw, 13.6px)"
-                : "clamp(12px, 3.15cqw, 14.5px)";
+              ? effectiveChars > 38
+                ? "clamp(12.8px, 2.55cqw, 15.5px)"
+                : effectiveChars > 26
+                ? "clamp(13.8px, 2.75cqw, 17px)"
+                : "clamp(15px, 3.0cqw, 18.5px)"
+              : effectiveChars > 30
+              ? "clamp(11.2px, 2.85cqw, 13.5px)"
+              : effectiveChars > 20
+              ? "clamp(12.2px, 3.15cqw, 14.6px)"
+              : "clamp(13px, 3.35cqw, 15.6px)";
 
             return (
               <div
@@ -340,6 +369,30 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
               >
                 {row.map((artist, aIdx) => {
                   const upperName = artist.name.trim().toUpperCase();
+
+                  // Se for linha solo com nome longo, renderiza as linhas empilhadas
+                  if (isSoloLong && soloLines) {
+                    return (
+                      <div
+                        key={artist.id}
+                        className="inline-flex flex-col items-center justify-center leading-none"
+                      >
+                        {soloLines.map((line, lIdx) => (
+                          <span
+                            key={lIdx}
+                            className="font-lolla font-black uppercase text-[#181818] tracking-[-0.01em] whitespace-nowrap"
+                            style={{
+                              WebkitTextStroke: "0.32px #181818",
+                              lineHeight: "0.88",
+                            }}
+                          >
+                            {line}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  }
+
                   return (
                     <React.Fragment key={artist.id}>
                       <span
