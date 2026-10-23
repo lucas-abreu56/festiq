@@ -15,6 +15,22 @@ O motor tipográfico distribui os 45 nomes sem truncar caracteres (`...`), quebr
 3. **Forestfest:** inspirado no Festify, com balanceamento por comprimento de nomes.
 4. **Impresso '85:** grade jornalística de 10 dias inspirada no Rock in Rio de 1985.
 5. **C6 Minimal:** íris concêntrica multicolorida de 378 pontos com lineup contínuo de `A` a `Z`.
+6. **Camp Carnival:** pôr do sol californiano, logotipo 3D Carnival, tickets, roda-gigante e hierarquia em diamante inspirada no Camp Flog Gnaw com o headliner supremo ao centro.
+7. **Rage Xerox:** estética analógica de fotocópia xerox, brasão caligráfico dark metal cromado, estrelas separadoras `★` e tipografia expandida do rap streetwear.
+
+## Bateria de testes automatizados
+
+O Festiq conta com uma suíte de testes ponta a ponta com Playwright que cobre os 4 pilares de validação:
+
+```bash
+# Executa a suíte E2E completa (filtros, espaçamento mobile/desktop e exportação PNG 1080p)
+npm run test:suite
+```
+
+A suíte valida:
+- **Todos os filtros:** modos Meu Gosto, Popularidade e os 9 gêneros musicais sem buracos no cartaz, além dos 3 períodos e do botão de embaralhar.
+- **Espaçamento e Zero-Truncate:** ausência de corte horizontal e garantia de zero truncamento (`...`) em Desktop (1440px), iPhone 14 (390px) e celular compacto (360px) em todos os 7 temas nos formatos 9:16 e 1:1.
+- **Download e integridade PNG:** renderização e download de arquivos em alta definição com validação dos bytes de cabeçalho e resolução exata de 1080 × 1920 px (Stories) e 1080 × 1080 px (Feed).
 
 ## Como rodar localmente
 

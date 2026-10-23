@@ -1,9 +1,11 @@
+import Link from "next/link";
+
 export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen max-w-3xl mx-auto px-6 py-16 text-brand-text">
-      <a href="/" className="inline-block text-xs font-mono text-brand-accent hover:underline mb-8">
+      <Link href="/" className="inline-block text-xs font-mono text-brand-accent hover:underline mb-8">
         ← Voltar ao Festiq
-      </a>
+      </Link>
       <h1 className="text-3xl font-display font-black uppercase text-white mb-6">
         Política de Privacidade
       </h1>
