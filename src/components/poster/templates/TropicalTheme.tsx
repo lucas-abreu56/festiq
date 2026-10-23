@@ -204,8 +204,8 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             viewBox="0 0 280 172"
             className={
               isSquare
-                ? "w-28 sm:w-32 h-auto -mb-1"
-                : "w-36 sm:w-40 h-auto -mb-1"
+                ? "w-[124px] h-auto -mb-1"
+                : "w-[150px] h-auto -mb-1"
             }
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -421,14 +421,14 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           <div className="leading-none -mt-0.5">
             <p
               className={`font-sans font-black uppercase tracking-wider text-white drop-shadow-[0_1.2px_2px_rgba(0,0,0,0.35)] ${
-                isSquare ? "text-[8px] sm:text-[9px]" : "text-[8.5px] sm:text-[9.5px]"
+                isSquare ? "text-[9px]" : "text-[8.5px]"
               }`}
             >
               3 E 4 DE FEVEREIRO
             </p>
             <p
               className={`font-sans font-black uppercase tracking-wider text-white drop-shadow-[0_1.2px_2px_rgba(0,0,0,0.35)] mt-[1px] ${
-                isSquare ? "text-[6.8px] sm:text-[7.5px]" : "text-[7px] sm:text-[8px]"
+                isSquare ? "text-[7.5px]" : "text-[7.2px]"
               }`}
             >
               NA SABA, EM ATLÂNTIDA · {lineup.subtitle.split("·")[0].trim()}
@@ -443,7 +443,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           }`}
         >
           {/* LINHA 1: 3 Headliners Principais Lado a Lado Separados por Raios (⚡) */}
-          <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2">
+          <div className="w-full flex items-center justify-center gap-1.5">
             {row1Headliners.map((artist, idx) => {
               const lines = stackPlanetaName(artist.name, 9);
               const maxLineChars = Math.max(...lines.map((l) => l.length));
@@ -456,11 +456,11 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                         className={`block font-sans font-black uppercase text-[#141414] whitespace-nowrap ${
                           isSquare
                             ? maxLineChars > 13
-                              ? "text-[9.5px] sm:text-[10.5px] tracking-tighter"
-                              : "text-[11px] sm:text-xs tracking-tight"
+                              ? "text-[10px] tracking-tighter"
+                              : "text-[11.5px] tracking-tight"
                             : maxLineChars > 13
-                            ? "text-[9px] sm:text-[10px] tracking-tighter"
-                            : "text-[10.5px] sm:text-xs tracking-tight"
+                            ? "text-[9.5px] tracking-tighter"
+                            : "text-[11px] tracking-tight"
                         }`}
                         style={{ lineHeight: "0.92" }}
                       >
@@ -483,7 +483,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           </div>
 
           {/* LINHA 2: 4 Co-Headliners em 1 ÚNICA FILEIRA (Nomes compostos empilhados em 2 linhas como "JOTA / QUEST • LUAN / SANTANA • LUDMILLA • LUÍSA / SONZA") */}
-          <div className="w-full flex items-center justify-center gap-1 sm:gap-1.5 leading-none">
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
             {row2CoHeadliners.map((artist, idx) => {
               const lines = stackPlanetaName(artist.name, 9);
               const maxLineChars = Math.max(...lines.map((l) => l.length));
@@ -496,11 +496,11 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                         className={`font-sans font-black uppercase text-[#141414] whitespace-nowrap ${
                           isSquare
                             ? maxLineChars > 14
-                              ? "text-[7.5px] sm:text-[8.5px] tracking-tighter"
-                              : "text-[9px] sm:text-[10px] tracking-tight"
+                              ? "text-[8.2px] tracking-tighter"
+                              : "text-[9.5px] tracking-tight"
                             : maxLineChars > 14
-                            ? "text-[7px] sm:text-[7.8px] tracking-tighter"
-                            : "text-[8.2px] sm:text-[9.2px] tracking-tight"
+                            ? "text-[7.5px] tracking-tighter"
+                            : "text-[8.6px] tracking-tight"
                         }`}
                         style={{ lineHeight: lines.length > 1 ? "0.92" : "0.98" }}
                       >
@@ -526,7 +526,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           {[row3SubHeadliners, row4SubHeadliners].map((subRow, sIdx) => (
             <div
               key={`sub-${sIdx}`}
-              className="w-full flex items-center justify-center gap-1.5 sm:gap-2 leading-none"
+              className="w-full flex items-center justify-center gap-1.5 leading-none"
             >
               {subRow.map((artist, idx) => {
                 const lines = stackPlanetaName(artist.name, 11);
@@ -540,11 +540,11 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                           className={`font-sans font-extrabold uppercase text-[#141414] whitespace-nowrap ${
                             isSquare
                               ? maxLineChars > 14
-                                ? "text-[7.8px] sm:text-[8.6px] tracking-tighter"
-                                : "text-[8.8px] sm:text-[9.8px] tracking-tight"
+                                ? "text-[8.2px] tracking-tighter"
+                                : "text-[9.2px] tracking-tight"
                               : maxLineChars > 14
-                              ? "text-[7.2px] sm:text-[8px] tracking-tighter"
-                              : "text-[8px] sm:text-[8.8px] tracking-tight"
+                              ? "text-[7.6px] tracking-tighter"
+                              : "text-[8.4px] tracking-tight"
                           }`}
                           style={{ lineHeight: lines.length > 1 ? "0.92" : "0.98" }}
                         >
@@ -567,41 +567,52 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             </div>
           ))}
 
-          {/* LINHAS 5 a 12: Undercard Equalizado (4 Artistas por Fileira, Irmãos Diretos no Flexbox para Espaçamento Vertical Perfeito!) */}
+          {/* LINHAS 5 a 12: Undercard Equalizado (4 Artistas por Fileira, com empilhamento de nomes longos e container query) */}
           {undercardRows.map((row, rIdx) => {
-            const rowChars = row.reduce((acc, a) => acc + a.name.length, 0);
+            const rowChars = row.reduce((acc, a) => acc + Math.max(...stackPlanetaName(a.name, 11).map(l => l.length)), 0);
+            const fontSizeStyle = isSquare
+              ? rowChars > 44
+                ? "clamp(7.5px, 1.8cqw, 9.2px)"
+                : "clamp(8.2px, 2.0cqw, 10.2px)"
+              : rowChars > 38
+              ? "clamp(6.5px, 1.9cqw, 7.8px)"
+              : "clamp(7.0px, 2.1cqw, 8.4px)";
+
             return (
               <div
                 key={`under-${rIdx}`}
-                className="w-full flex items-center justify-center gap-x-1 sm:gap-x-1.5 leading-none whitespace-nowrap"
+                className="w-full flex items-center justify-center gap-x-1 leading-none"
               >
-                {row.map((artist, aIdx) => (
-                  <React.Fragment key={artist.id}>
-                    <span
-                      className={`font-sans font-extrabold uppercase text-[#141414] whitespace-nowrap ${
-                        isSquare
-                          ? rowChars > 46
-                            ? "text-[6.8px] sm:text-[7.5px] tracking-tighter"
-                            : "text-[7.5px] sm:text-[8.4px] tracking-tight"
-                          : rowChars > 42
-                          ? "text-[6.2px] sm:text-[6.8px] tracking-tighter"
-                          : "text-[6.8px] sm:text-[7.5px] tracking-tight"
-                      }`}
-                      style={{ lineHeight: "1.0" }}
-                    >
-                      {artist.name}
-                    </span>
-                    {aIdx < row.length - 1 && (
-                      <span
-                        className={`font-black text-[6.5px] leading-none flex-shrink-0 ${
-                          dotColors[(rIdx + aIdx) % dotColors.length]
-                        }`}
-                      >
-                        •
-                      </span>
-                    )}
-                  </React.Fragment>
-                ))}
+                {row.map((artist, aIdx) => {
+                  const lines = stackPlanetaName(artist.name, 11);
+                  return (
+                    <React.Fragment key={artist.id}>
+                      <div className="inline-flex flex-col items-center text-center leading-none">
+                        {lines.map((line, lIdx) => (
+                          <span
+                            key={lIdx}
+                            className="font-sans font-extrabold uppercase text-[#141414] whitespace-nowrap tracking-tight"
+                            style={{
+                              fontSize: fontSizeStyle,
+                              lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                            }}
+                          >
+                            {line}
+                          </span>
+                        ))}
+                      </div>
+                      {aIdx < row.length - 1 && (
+                        <span
+                          className={`font-black text-[6.5px] leading-none flex-shrink-0 ${
+                            dotColors[(rIdx + aIdx) % dotColors.length]
+                          }`}
+                        >
+                          •
+                        </span>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </div>
             );
           })}
@@ -613,20 +624,20 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
           <p
             className={`font-sans font-black uppercase tracking-wider text-[#141414] leading-none ${
-              isSquare ? "text-[8.5px] sm:text-[9.5px]" : "text-[9px] sm:text-[10px]"
+              isSquare ? "text-[9.5px]" : "text-[9.2px]"
             }`}
           >
             O PLANETA VOLTA A GIRAR
           </p>
-          <p className="font-sans font-bold text-[6px] sm:text-[6.8px] uppercase tracking-widest text-[#141414]/80 mt-[1px]">
+          <p className="font-sans font-bold text-[6.5px] uppercase tracking-widest text-[#141414]/80 mt-[1px]">
             PLANETAFESTIQ.COM.BR
           </p>
 
           <div
             className={`mt-0.5 px-3.5 rounded-full bg-[#F4511E] text-white flex items-center justify-center gap-2 font-sans font-black uppercase tracking-wider shadow-sm ${
               isSquare
-                ? "py-0.5 text-[6.5px] sm:text-[7px]"
-                : "py-1 text-[7px] sm:text-[8px]"
+                ? "py-0.5 text-[7px]"
+                : "py-1 text-[7.5px]"
             }`}
           >
             <span className="px-1 py-[1px] bg-[#D50000] rounded text-white">

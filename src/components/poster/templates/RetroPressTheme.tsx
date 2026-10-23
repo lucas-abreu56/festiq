@@ -46,7 +46,7 @@ function formatRock85Header(rawTitle: string): string {
  */
 function splitScheduleArtistLines(name: string): string[] {
   const clean = name.trim();
-  if (clean.length <= 15 || !clean.includes(" ")) {
+  if (clean.length <= 11 || !clean.includes(" ")) {
     return [clean];
   }
   const words = clean.split(/\s+/);
@@ -102,7 +102,7 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
   return (
     <div
       className={`w-full h-full text-[#1F1C19] flex flex-col justify-between relative overflow-hidden select-none font-display ${
-        isSquare ? "px-3 py-2 sm:px-3.5 sm:py-2.5" : "px-3 py-3 sm:px-3.5 sm:py-3.5"
+        isSquare ? "px-3.5 py-2.5" : "px-3 py-3"
       }`}
       style={{
         backgroundColor: "#E4D8C1",
@@ -132,15 +132,15 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
           className={`font-display font-black uppercase leading-[0.88] tracking-[-0.02em] text-[#423B34] mx-auto ${
             isSquare
               ? headerTitle.length > 28
-                ? "text-[17px] sm:text-[20px]"
+                ? "text-[18px]"
                 : headerTitle.length > 21
-                ? "text-[21px] sm:text-[25px]"
-                : "text-[26px] sm:text-[31px]"
+                ? "text-[23px]"
+                : "text-[28px]"
               : headerTitle.length > 28
-              ? "text-[19px] sm:text-[22px]"
+              ? "text-[19px]"
               : headerTitle.length > 21
-              ? "text-[23px] sm:text-[27px]"
-              : "text-[29px] sm:text-[34px]"
+              ? "text-[23px]"
+              : "text-[29px]"
           }`}
           style={{
             WebkitTextStroke: "1.2px #1A1715",
@@ -159,7 +159,7 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
           <div className="relative inline-flex items-start justify-center">
             <span
               className={`font-display font-bold uppercase text-[#1F1C19] leading-none tracking-[0.26em] pl-[0.26em] ${
-                isSquare ? "text-base sm:text-lg" : "text-lg sm:text-xl"
+                isSquare ? "text-base" : "text-lg"
               }`}
             >
               PROGRAMAÇÃO
@@ -200,11 +200,11 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       className={`font-display font-bold uppercase tracking-tighter text-[#221F1D] w-full ${
                         slot.weekday.length > 11
                           ? isSquare
-                            ? "text-[7px] sm:text-[7.8px]"
-                            : "text-[6.5px] sm:text-[7.2px]"
+                            ? "text-[7.5px]"
+                            : "text-[6.8px]"
                           : isSquare
-                          ? "text-[7.8px] sm:text-[8.6px]"
-                          : "text-[7.2px] sm:text-[8px]"
+                          ? "text-[8.2px]"
+                          : "text-[7.6px]"
                       }`}
                     >
                       {slot.weekday}
@@ -212,7 +212,7 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
                     <span
                       className={`font-display font-black text-[#1A1715] leading-[0.86] ${
-                        isSquare ? "text-2xl sm:text-3xl my-0.5" : "text-2xl sm:text-3xl my-0.5"
+                        isSquare ? "text-2xl my-0.5" : "text-2xl my-0.5"
                       }`}
                     >
                       {slot.dayNumber}
@@ -220,7 +220,7 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
                     <span
                       className={`font-display font-bold uppercase tracking-tight text-[#221F1D] ${
-                        isSquare ? "text-[7.2px] sm:text-[8px]" : "text-[7px] sm:text-[7.8px]"
+                        isSquare ? "text-[7.6px]" : "text-[7.2px]"
                       }`}
                     >
                       {slot.monthYear}
@@ -253,15 +253,15 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
                               } ${
                                 isSquare
                                   ? maxLineLen > 12
-                                    ? "text-[6.8px] sm:text-[7.5px] tracking-tighter"
+                                    ? "text-[7.2px] tracking-tighter"
                                     : isDayHeadliner
-                                    ? "text-[8.2px] sm:text-[9.2px] tracking-tight"
-                                    : "text-[7.5px] sm:text-[8.4px] tracking-tight"
+                                    ? "text-[8.8px] tracking-tight"
+                                    : "text-[8px] tracking-tight"
                                   : maxLineLen > 12
-                                  ? "text-[6.6px] sm:text-[7.2px] tracking-tighter"
+                                  ? "text-[6.6px] tracking-tighter"
                                   : isDayHeadliner
-                                  ? "text-[8px] sm:text-[8.8px] tracking-tight"
-                                  : "text-[7.2px] sm:text-[8px] tracking-tight"
+                                  ? "text-[8.2px] tracking-tight"
+                                  : "text-[7.4px] tracking-tight"
                               }`}
                               style={{ lineHeight: lines.length > 1 ? "0.92" : "1.02" }}
                             >
@@ -287,14 +287,14 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
       >
         <p
           className={`font-sans font-bold text-[#1F1C19] leading-tight ${
-            isSquare ? "text-[7px] sm:text-[8px]" : "text-[8px] sm:text-[9px]"
+            isSquare ? "text-[7.5px]" : "text-[8px]"
           }`}
         >
           Os portões serão abertos a partir das 12 horas.
         </p>
         <p
           className={`font-sans font-bold text-[#1F1C19] leading-tight ${
-            isSquare ? "text-[7px] sm:text-[8px]" : "text-[8px] sm:text-[9px]"
+            isSquare ? "text-[7.5px]" : "text-[8px]"
           }`}
         >
           Os shows começam às 18 horas, diariamente, e às 16 horas, aos domingos.

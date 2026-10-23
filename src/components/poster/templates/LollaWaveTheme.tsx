@@ -190,24 +190,24 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         }`}
       >
         {/* Data e Local (Coluna Ciano: 0% a 38.4%, com pl-6 para nunca encostar no "15" do canto superior esquerdo) */}
-        <div className="w-[38.4%] text-right pl-6 sm:pl-7 pr-2">
+        <div className="w-[38.4%] text-right pl-6 pr-2">
           <p
             className={`font-sans font-extrabold text-[#161616] tracking-tight leading-[1.12] ${
-              isSquare ? "text-[8px] sm:text-[9.5px]" : "text-[7.5px] sm:text-[8.5px]"
+              isSquare ? "text-[8.5px]" : "text-[8px]"
             }`}
           >
             Março 19, 20 e 21 de 2027
           </p>
           <p
             className={`font-sans font-bold text-[#161616] tracking-tight leading-[1.12] ${
-              isSquare ? "text-[8px] sm:text-[9.5px]" : "text-[7.5px] sm:text-[8.5px]"
+              isSquare ? "text-[8.5px]" : "text-[8px]"
             }`}
           >
             Autódromo de Interlagos
           </p>
           <p
             className={`font-sans font-bold text-[#161616] tracking-tight leading-[1.12] ${
-              isSquare ? "text-[8px] sm:text-[9.5px]" : "text-[7.5px] sm:text-[8.5px]"
+              isSquare ? "text-[8.5px]" : "text-[8px]"
             }`}
           >
             São Paulo, SP
@@ -215,21 +215,21 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
 
         {/* Logo Principal 3D Branco/Preto estilo Lollapalooza Brasil (pr-10 para não encostar nos hibiscos do canto direito) */}
-        <div className="w-[61.6%] pl-2 pr-9 sm:pr-11 flex flex-col items-center justify-center">
+        <div className="w-[61.6%] pl-2 pr-10 flex flex-col items-center justify-center">
           <div className="relative inline-flex flex-col items-center -rotate-[1.5deg]">
             <span
               className={`font-lolla uppercase text-white tracking-[0.03em] leading-[0.88] select-none text-center whitespace-nowrap ${
                 isSquare
                   ? titleLen > 16
-                    ? "text-lg sm:text-xl"
+                    ? "text-xl"
                     : titleLen > 12
-                    ? "text-xl sm:text-2xl"
-                    : "text-2xl sm:text-[28px]"
+                    ? "text-2xl"
+                    : "text-[28px]"
                   : titleLen > 16
-                  ? "text-base sm:text-lg"
+                  ? "text-lg"
                   : titleLen > 12
-                  ? "text-lg sm:text-xl"
-                  : "text-xl sm:text-2xl"
+                  ? "text-xl"
+                  : "text-2xl"
               }`}
               style={{
                 WebkitTextStroke: "2px #141414",
@@ -242,7 +242,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
             </span>
             <span
               className={`bg-[#141414] text-white font-lolla uppercase tracking-[0.22em] px-2.5 py-[1px] rounded-full mt-1 shadow-[1.5px_2px_0px_#141414] ${
-                isSquare ? "text-[7px] sm:text-[8.5px]" : "text-[6.8px] sm:text-[7.8px]"
+                isSquare ? "text-[8px]" : "text-[7.2px]"
               }`}
             >
               BRASIL
@@ -258,7 +258,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         }`}
       >
         {/* COLUNA ESQUERDA (38.4%): 10 Headliners com Cap-Height Uniforme, Grande Destaque e Zero Truncamento */}
-        <div className="w-[38.4%] flex flex-col justify-between text-right pl-4 sm:pl-5 pr-1.5 sm:pr-2 py-0.5">
+        <div className="w-[38.4%] flex flex-col justify-between text-right pl-4 pr-1.5 py-0.5">
           {headliners.map((artist) => {
             const lines = formatHeadlinerLines(artist.name);
             const maxEffectiveLen = Math.max(
@@ -313,7 +313,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
 
         {/* COLUNA DIREITA (61.6%): 35 Artistas do Undercard em Fileiras Coesas, Nomes Maiores e Agrupados com Bullet */}
-        <div className="w-[61.6%] flex flex-col justify-between text-center pl-1 sm:pl-1.5 pr-2.5 sm:pr-3 py-0.5 overflow-hidden">
+        <div className="w-[61.6%] flex flex-col justify-between text-center pl-1 pr-2.5 py-0.5 overflow-hidden">
           {undercardRows.map((row, rIdx) => {
             const totalChars =
               row.reduce((acc, a) => acc + a.name.length, 0) +
@@ -352,10 +352,10 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       </span>
                       {aIdx < row.length - 1 && (
                         <span
-                          className={`text-[#26B6D4] font-sans font-black leading-none mx-1 sm:mx-1.5 select-none ${
+                          className={`text-[#26B6D4] font-sans font-black leading-none mx-1 select-none ${
                             isSquare
-                              ? "text-[8px] sm:text-[9.5px]"
-                              : "text-[7.5px] sm:text-[8.5px]"
+                              ? "text-[9px]"
+                              : "text-[8px]"
                           }`}
                         >
                           •
@@ -372,7 +372,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
       {/* 4. Barra Compacta de Assinatura Festiq no Rodapé (Sem Logos Corporativos de Terceiros) */}
       <div
-        className={`relative z-10 w-full bg-[#181512] px-3.5 flex items-center justify-between text-[7px] sm:text-[8px] font-mono text-white/85 uppercase ${
+        className={`relative z-10 w-full bg-[#181512] px-3.5 flex items-center justify-between text-[7.5px] font-mono text-white/85 uppercase ${
           isSquare ? "py-1" : "py-1.5"
         }`}
       >
@@ -383,7 +383,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
           <span className="px-1.5 py-[1px] rounded-sm bg-[#63CBD8] text-[#141414] font-black">
             SPOTIFY API
           </span>
-          <span className="text-white/60 hidden sm:inline">
+          <span className="text-white/60">
             {lineup.subtitle}
           </span>
         </div>

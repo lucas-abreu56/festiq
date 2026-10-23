@@ -202,12 +202,12 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
           isSquare ? "pt-4 pb-1" : "pt-6 pb-1"
         }`}
       >
-        <p className="font-sans font-extrabold text-[10.5px] sm:text-xs uppercase tracking-[0.08em] text-[#2B6EF2] leading-tight">
+        <p className="font-sans font-extrabold text-[11px] uppercase tracking-[0.08em] text-[#2B6EF2] leading-tight">
           {presenterLabel}
         </p>
         <h1
           className={`font-sans font-black uppercase tracking-[0.03em] text-[#2B6EF2] leading-none mt-0.5 ${
-            isSquare ? "text-2xl sm:text-[26px]" : "text-2xl sm:text-3xl"
+            isSquare ? "text-2xl" : "text-3xl"
           }`}
         >
           {lineup.title}
@@ -217,7 +217,7 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
       {/* 3. Pirâmide de Artistas com Ritmo Vertical Uniforme do Topo até a Cabana (Zero Buracos) */}
       <div
         className={`relative z-10 flex-1 flex flex-col justify-between items-center w-full ${
-          isSquare ? "px-6 sm:px-8 py-1.5" : "px-4 sm:px-5 py-2.5"
+          isSquare ? "px-7 py-1.5" : "px-4 py-2.5"
         }`}
       >
         {/* Nível 1: Headliner Supremo */}
@@ -303,7 +303,7 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 return (
                   <div
                     key={artist.id}
-                    className="inline-flex flex-col items-center justify-center text-center leading-none px-0.5 sm:px-1"
+                    className="inline-flex flex-col items-center justify-center text-center leading-none px-0.5"
                   >
                     {lines.map((line, lIdx) => (
                       <span
@@ -332,7 +332,7 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
       <div className="relative z-10 w-full mt-auto bg-white">
         <svg
           viewBox="0 0 600 185"
-          className={`w-full block ${isSquare ? "h-[85px] sm:h-[98px]" : "h-[105px] sm:h-[120px]"}`}
+          className={`w-full block ${isSquare ? "h-[90px]" : "h-[110px]"}`}
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="xMidYBottom meet"
@@ -580,10 +580,10 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
             isSquare ? "pb-1.5 pt-0.5" : "pb-2 pt-0.5"
           }`}
         >
-          <span className="font-sans font-black text-sm sm:text-base uppercase tracking-[0.06em] text-[#2B6EF2]">
+          <span className="font-sans font-black text-sm uppercase tracking-[0.06em] text-[#2B6EF2]">
             FESTIQ
           </span>
-          <span className="absolute right-8 font-sans font-bold text-[7px] sm:text-[8px] uppercase tracking-widest text-black/25">
+          <span className="absolute right-8 font-sans font-bold text-[7.5px] uppercase tracking-widest text-black/25">
             {lineup.timeRange === "short_term"
               ? "LAST MONTH"
               : lineup.timeRange === "medium_term"

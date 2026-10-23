@@ -113,12 +113,12 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
   return (
     <div
       className={`w-full h-full bg-[#000000] text-white flex flex-col justify-between relative overflow-hidden select-none font-sans ${
-        isSquare ? "px-5 py-3.5 sm:px-6 sm:py-4" : "px-5 py-5 sm:px-6 sm:py-6"
+        isSquare ? "px-6 py-4" : "px-5 py-5"
       }`}
     >
       {/* 1. TOPO: Íris Concêntrica Pontilhada Multicolorida + Logotipo Central */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
-        <div className={`relative flex items-center justify-center ${isSquare ? "w-44 h-44 sm:w-48 sm:h-48" : "w-56 h-56 sm:w-60 sm:h-60"}`}>
+        <div className={`relative flex items-center justify-center ${isSquare ? "w-48 h-48" : "w-56 h-56"}`}>
           <svg
             viewBox="0 0 280 280"
             className="w-full h-full"
@@ -154,17 +154,17 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
               className={`font-display font-black uppercase text-white leading-[0.88] tracking-tight ${
                 primary.length <= 3
                   ? isSquare
-                    ? "text-3xl sm:text-4xl"
-                    : "text-4xl sm:text-[42px]"
+                    ? "text-4xl"
+                    : "text-4xl"
                   : primary.length <= 6
                   ? isSquare
-                    ? "text-lg sm:text-xl"
-                    : "text-xl sm:text-2xl"
+                    ? "text-xl"
+                    : "text-xl"
                   : primary.length <= 10
                   ? isSquare
-                    ? "text-xs sm:text-sm"
-                    : "text-sm sm:text-base"
-                  : "text-[10px] sm:text-xs"
+                    ? "text-sm"
+                    : "text-sm"
+                  : "text-xs"
               }`}
             >
               {primary}
@@ -172,10 +172,10 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
             <span
               className={`font-sans font-light uppercase text-white/95 leading-none tracking-[0.16em] pl-[0.16em] mt-1 ${
                 secondary.length > 10
-                  ? "text-[9px] sm:text-[10px]"
+                  ? "text-[10px]"
                   : isSquare
-                  ? "text-xs sm:text-sm"
-                  : "text-sm sm:text-base"
+                  ? "text-sm"
+                  : "text-sm"
               }`}
             >
               {secondary}
@@ -190,7 +190,7 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
         <div className={isSquare ? "mb-1" : "mb-2"}>
           <span
             className={`font-sans font-normal text-white tracking-[0.2em] ${
-              isSquare ? "text-[10px] sm:text-[11px]" : "text-xs sm:text-[13px]"
+              isSquare ? "text-[11px]" : "text-xs"
             }`}
           >
             A a Z
@@ -201,8 +201,8 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
         <div
           className={`w-full text-justify [text-align-last:justify] uppercase font-sans font-medium ${
             isSquare
-              ? "text-[11.8px] sm:text-[13.2px] leading-[1.36] tracking-[0.045em]"
-              : "text-[11.8px] sm:text-[12.8px] leading-[1.46] tracking-[0.045em]"
+              ? "text-[13px] leading-[1.38] tracking-[0.045em]"
+              : "text-[12px] leading-[1.46] tracking-[0.045em]"
           }`}
         >
           {sortedArtists.map((artist, idx) => {
@@ -225,12 +225,12 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
       {/* 3. RODAPÉ: Assinatura Discreta à Esquerda + Ano Grande "2026" à Direita */}
       <div className="relative z-10 w-full flex items-end justify-between pt-1">
-        <div className="text-[7px] sm:text-[8px] font-mono uppercase tracking-[0.2em] text-white/40 pb-0.5">
+        <div className="text-[8px] font-mono uppercase tracking-[0.2em] text-white/40 pb-0.5">
           <span>FESTIQ · {lineup.subtitle.split("·")[0].trim()}</span>
         </div>
         <div
           className={`font-sans font-light text-white leading-none tracking-tight ${
-            isSquare ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl"
+            isSquare ? "text-2xl" : "text-2xl"
           }`}
         >
           2026
