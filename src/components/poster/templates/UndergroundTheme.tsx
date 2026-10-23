@@ -7,9 +7,9 @@ interface ThemeProps {
 }
 
 /**
- * Empilha nomes compostos longos em 2 linhas centralizadas com entrelinha compacta
+ * Empilha nomes compostos longos em 2 ou 3 linhas centralizadas com entrelinha compacta
  * para que bandas com nomes longos (ex: "HOMIXIDE GANG", "DENZEL CURRY", "SHECK WES",
- * "STOPBEINGANTISOCIAL") apareçam 100% inteiras sem truncamento (Zero-Truncate Rule).
+ * "SOPHIA CHABLAU E UMA ENORME PERDA DE TEMPO") apareçam 100% inteiras sem truncamento (Zero-Truncate Rule).
  */
 function stackUndergroundName(name: string, maxSingleChars = 11): string[] {
   const clean = name.trim().toUpperCase();
@@ -20,6 +20,17 @@ function stackUndergroundName(name: string, maxSingleChars = 11): string[] {
   if (words.length === 2) {
     return [words[0], words[1]];
   }
+
+  // Se o nome for longo (> 24 caracteres e >= 4 palavras), quebra em 3 linhas balanceadas
+  if (clean.length > 24 && words.length >= 4) {
+    const t1 = Math.round(words.length / 3);
+    const t2 = Math.round((words.length * 2) / 3);
+    const p1 = words.slice(0, t1).join(" ");
+    const p2 = words.slice(t1, t2).join(" ");
+    const p3 = words.slice(t2).join(" ");
+    if (p1 && p2 && p3) return [p1, p2, p3];
+  }
+
   let bestIdx = Math.ceil(words.length / 2);
   let bestDiff = Infinity;
   for (let i = 1; i < words.length; i++) {
@@ -61,9 +72,10 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
   // Linha 4: Quarteto Destaque (ex: CHIEF KEEF ★ YEAT ★ LIL YACHTY ★ ASAP ROCKY)
   const featuredQuartet = allArtists.slice(7, 11);
 
-  // Linhas 5 em diante: Undercard denso com estrelas ★ (34 artistas distribuídos em 7 a 9 fileiras)
+  // Linhas 5 em diante: Undercard denso com estrelas ★ (34 artistas em fileiras balanceadas de 3 a 4 artistas)
   const remainingArtists = allArtists.slice(11);
-  const rowsCount = isSquare ? 6 : 8;
+  const targetPerRow = isSquare ? 4 : 3;
+  const rowsCount = Math.max(1, Math.ceil(remainingArtists.length / targetPerRow));
   const undercardRows: SpotifyArtist[][] = [];
   const baseCount = Math.floor(remainingArtists.length / rowsCount);
   const extraCount = remainingArtists.length % rowsCount;
@@ -175,7 +187,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
 
         {/* 4 Insígnias Tribais / Halftone Crests em Linha */}
-        <div className="flex items-center justify-center gap-3 sm:gap-4 w-full -mt-1 opacity-80">
+        <div className="flex items-center justify-center gap-3.5 w-full -mt-1 opacity-80">
           {[0, 1, 2, 3].map((idx) => (
             <svg
               key={idx}
@@ -215,7 +227,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
             <span
               className="block font-display font-black uppercase text-white whitespace-nowrap tracking-wide"
               style={{
-                fontSize: isSquare ? "clamp(19px, 4.6cqw, 26px)" : "clamp(18px, 5.2cqw, 25px)",
+                fontSize: isSquare ? "clamp(21px, 5.0cqw, 28px)" : "clamp(19px, 5.4cqw, 27px)",
                 WebkitTextStroke: "0.8px #E2E2E2",
                 textShadow: "0 0 8px rgba(255,255,255,0.35)",
               }}
@@ -234,7 +246,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 key={lIdx}
                 className="font-display font-bold uppercase text-[#D8D8D8] whitespace-nowrap tracking-tight"
                 style={{
-                  fontSize: isSquare ? "clamp(10.5px, 2.4cqw, 14px)" : "clamp(10px, 2.8cqw, 13px)",
+                  fontSize: isSquare ? "clamp(11.5px, 2.6cqw, 15px)" : "clamp(10.5px, 2.8cqw, 13.5px)",
                   lineHeight: "0.88",
                 }}
               >
@@ -253,7 +265,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 key={lIdx}
                 className="font-display font-black uppercase text-white whitespace-nowrap tracking-wide"
                 style={{
-                  fontSize: isSquare ? "clamp(14px, 3.4cqw, 19px)" : "clamp(13.5px, 3.9cqw, 18px)",
+                  fontSize: isSquare ? "clamp(15px, 3.8cqw, 21px)" : "clamp(13.5px, 3.8cqw, 18.5px)",
                   WebkitTextStroke: "0.5px #E2E2E2",
                   lineHeight: "0.92",
                 }}
@@ -273,7 +285,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 key={lIdx}
                 className="font-display font-bold uppercase text-[#D8D8D8] whitespace-nowrap tracking-tight"
                 style={{
-                  fontSize: isSquare ? "clamp(10.5px, 2.4cqw, 14px)" : "clamp(10px, 2.8cqw, 13px)",
+                  fontSize: isSquare ? "clamp(11.5px, 2.6cqw, 15px)" : "clamp(10.5px, 2.8cqw, 13.5px)",
                   lineHeight: "0.88",
                 }}
               >
@@ -295,7 +307,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       key={lIdx}
                       className="font-display font-bold uppercase text-white whitespace-nowrap tracking-tight"
                       style={{
-                        fontSize: isSquare ? "clamp(9.5px, 2.2cqw, 12.5px)" : "clamp(9px, 2.6cqw, 12px)",
+                        fontSize: isSquare ? "clamp(12px, 2.8cqw, 15.5px)" : "clamp(10.8px, 2.8cqw, 14px)",
                         lineHeight: lines.length > 1 ? "0.9" : "1.0",
                       }}
                     >
@@ -323,7 +335,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       key={lIdx}
                       className="font-display font-extrabold uppercase text-[#ECECEC] whitespace-nowrap tracking-tight"
                       style={{
-                        fontSize: isSquare ? "clamp(9px, 2.0cqw, 11.5px)" : "clamp(8.5px, 2.4cqw, 11px)",
+                        fontSize: isSquare ? "clamp(11px, 2.4cqw, 14px)" : "clamp(10px, 2.5cqw, 12.8px)",
                         lineHeight: lines.length > 1 ? "0.9" : "1.0",
                       }}
                     >
@@ -339,27 +351,27 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* LINHAS 5 EM DIANTE: UNDERCARD BRUTALISTA DENSE COM SEPARADORES ★ */}
+        {/* LINHAS 5 EM DIANTE: UNDERCARD BRUTALISTA DENSO COM SEPARADORES ★ */}
         {undercardRows.map((row, rIdx) => {
           const fontSizeStyle = isSquare
-            ? "clamp(7.6px, 1.8cqw, 9.8px)"
-            : "clamp(7.0px, 2.0cqw, 8.8px)";
+            ? "clamp(12px, 2.4cqw, 15.5px)"
+            : "clamp(9.8px, 2.4cqw, 13px)";
 
           return (
             <div
               key={`under-${rIdx}`}
-              className="w-full flex items-center justify-between px-1 leading-none overflow-hidden"
+              className="w-full flex items-center justify-center gap-x-2 px-1 leading-none overflow-hidden"
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
-                const lines = stackUndergroundName(artist.name, 10);
+                const lines = stackUndergroundName(artist.name, 11);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center justify-center text-center leading-none">
                       {lines.map((l, lIdx) => (
                         <span
                           key={lIdx}
-                          className="font-display font-bold uppercase text-[#C8C8C8] whitespace-nowrap tracking-tighter"
+                          className="font-display font-bold uppercase text-[#C8C8C8] whitespace-nowrap tracking-tight"
                           style={{ lineHeight: lines.length > 1 ? "0.9" : "1.0" }}
                         >
                           {l}
@@ -367,7 +379,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       ))}
                     </div>
                     {aIdx < row.length - 1 && (
-                      <span className="text-[#666666] text-[7.5px] leading-none select-none">★</span>
+                      <span className="text-[#666666] text-[8px] leading-none px-0.5 select-none">★</span>
                     )}
                   </React.Fragment>
                 );
