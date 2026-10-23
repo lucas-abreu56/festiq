@@ -40,9 +40,9 @@ function formatRock85Header(rawTitle: string): string {
 }
 
 /**
- * Quebra nomes compostos longos (> 15 caracteres, ex: "RED HOT CHILI PEPPERS",
- * "ENGENHEIROS DO HAWAII", "THE ROLLING STONES") em 2 linhas equilibradas dentro
- * da coluna do dia, garantindo 100% do nome visível sem jamais usar truncate.
+ * Quebra nomes compostos longos (> 11 caracteres, ex: "RED HOT CHILI PEPPERS",
+ * "ENGENHEIROS DO HAWAII", "THE ROLLING STONES") em 2 ou 3 linhas equilibradas dentro
+ * da coluna do dia, garantindo 100% do nome visível sem jamais truncar nenhuma letra.
  */
 function splitScheduleArtistLines(name: string): string[] {
   const clean = name.trim();
@@ -50,6 +50,20 @@ function splitScheduleArtistLines(name: string): string[] {
     return [clean];
   }
   const words = clean.split(/\s+/);
+  if (words.length === 2) {
+    return [words[0], words[1]];
+  }
+
+  // Se o nome tiver mais de 24 caracteres e 4+ palavras, quebra em 3 linhas balanceadas
+  if (clean.length > 24 && words.length >= 4) {
+    const t1 = Math.round(words.length / 3);
+    const t2 = Math.round((words.length * 2) / 3);
+    const p1 = words.slice(0, t1).join(" ");
+    const p2 = words.slice(t1, t2).join(" ");
+    const p3 = words.slice(t2).join(" ");
+    if (p1 && p2 && p3) return [p1, p2, p3];
+  }
+
   let bestIdx = Math.ceil(words.length / 2);
   let bestDiff = Infinity;
   for (let i = 1; i < words.length; i++) {
@@ -200,19 +214,19 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       className={`font-display font-bold uppercase tracking-tighter text-[#221F1D] w-full ${
                         slot.weekday.length > 11
                           ? isSquare
-                            ? "text-[7.5px]"
-                            : "text-[6.8px]"
+                            ? "text-[8px]"
+                            : "text-[7.4px]"
                           : isSquare
-                          ? "text-[8.2px]"
-                          : "text-[7.6px]"
+                          ? "text-[8.8px]"
+                          : "text-[8.2px]"
                       }`}
                     >
                       {slot.weekday}
                     </span>
 
                     <span
-                      className={`font-display font-black text-[#1A1715] leading-[0.86] ${
-                        isSquare ? "text-2xl my-0.5" : "text-2xl my-0.5"
+                      className={`font-display font-black text-[#1A1715] leading-[0.84] ${
+                        isSquare ? "text-3xl my-0.5" : "text-3xl my-0.5"
                       }`}
                     >
                       {slot.dayNumber}
@@ -220,7 +234,7 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
                     <span
                       className={`font-display font-bold uppercase tracking-tight text-[#221F1D] ${
-                        isSquare ? "text-[7.6px]" : "text-[7.2px]"
+                        isSquare ? "text-[8.2px]" : "text-[7.8px]"
                       }`}
                     >
                       {slot.monthYear}
@@ -238,6 +252,22 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       const lines = splitScheduleArtistLines(artist.name);
                       const maxLineLen = Math.max(...lines.map((l) => l.length));
 
+                      const fontStyle = isSquare
+                        ? isDayHeadliner
+                          ? maxLineLen > 13
+                            ? "clamp(9.8px, 2.0cqw, 12px)"
+                            : "clamp(10.8px, 2.2cqw, 13.5px)"
+                          : maxLineLen > 13
+                          ? "clamp(8.8px, 1.8cqw, 10.8px)"
+                          : "clamp(9.8px, 2.0cqw, 12.2px)"
+                        : isDayHeadliner
+                        ? maxLineLen > 13
+                          ? "clamp(9.0px, 2.2cqw, 11px)"
+                          : "clamp(10px, 2.4cqw, 12.5px)"
+                        : maxLineLen > 13
+                        ? "clamp(8.0px, 1.9cqw, 9.8px)"
+                        : "clamp(8.8px, 2.2cqw, 11px)";
+
                       return (
                         <div
                           key={`${slot.dayNumber}-${artist.id}`}
@@ -246,24 +276,15 @@ export const RetroPressTheme: React.FC<ThemeProps> = ({ lineup }) => {
                           {lines.map((line, lIdx) => (
                             <span
                               key={lIdx}
-                              className={`block w-full text-center font-display uppercase ${
+                              className={`block w-full text-center font-display uppercase tracking-tight ${
                                 isDayHeadliner
                                   ? "font-black text-[#110F0D]"
                                   : "font-bold text-[#26221E]"
-                              } ${
-                                isSquare
-                                  ? maxLineLen > 12
-                                    ? "text-[7.2px] tracking-tighter"
-                                    : isDayHeadliner
-                                    ? "text-[8.8px] tracking-tight"
-                                    : "text-[8px] tracking-tight"
-                                  : maxLineLen > 12
-                                  ? "text-[6.6px] tracking-tighter"
-                                  : isDayHeadliner
-                                  ? "text-[8.2px] tracking-tight"
-                                  : "text-[7.4px] tracking-tight"
                               }`}
-                              style={{ lineHeight: lines.length > 1 ? "0.92" : "1.02" }}
+                              style={{
+                                fontSize: fontStyle,
+                                lineHeight: lines.length > 1 ? "0.90" : "1.0",
+                              }}
                             >
                               {line}
                             </span>
