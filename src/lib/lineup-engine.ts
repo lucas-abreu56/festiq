@@ -129,6 +129,11 @@ export function filterArtistsByGenre(
     }
   }
 
+  // 4. Salvaguarda absoluta: se nenhuma correspondência foi encontrada, utiliza os primeiros 45 do mock
+  if (matched.length === 0) {
+    matched = [...MOCK_ARTISTS.slice(0, 45)];
+  }
+
   return matched;
 }
 

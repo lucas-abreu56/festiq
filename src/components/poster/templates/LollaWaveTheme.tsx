@@ -1,6 +1,7 @@
 import React from "react";
 import { FestivalLineup } from "@/lib/lineup-engine";
 import { SpotifyArtist } from "@/lib/mock-artists";
+import { LOLLA_BG_DATA_URI } from "@/lib/assets/lolla-bg";
 
 interface ThemeProps {
   lineup: FestivalLineup;
@@ -90,48 +91,9 @@ function formatHeadlinerLines(name: string): HeadlinerLine[] {
 }
 
 /**
- * Empilha nomes compostos longos do undercard em 2 linhas equilibradas quando excedem 15 caracteres
- * (ex: "SOPHIA CHABLAU / E UMA ENORME PERDA DE TEMPO", "QUEENS OF THE / STONE AGE", "RED HOT / CHILI PEPPERS"),
- * garantindo que a largura da linha não estoure a coluna amarela e cumprindo a Zero-Truncate Rule.
- */
-function formatUndercardArtistName(name: string): string[] {
-  const clean = name.trim().toUpperCase();
-  if (clean.length <= 11 || !clean.includes(" ")) {
-    return [clean];
-  }
-  const words = clean.split(/\s+/);
-  if (words.length === 2) {
-    return [words[0], words[1]];
-  }
-  let bestIdx = Math.ceil(words.length / 2);
-  let bestDiff = Infinity;
-  for (let i = 1; i < words.length; i++) {
-    const l1 = words.slice(0, i).join(" ").length;
-    const l2 = words.slice(i).join(" ").length;
-    const diff = Math.abs(l1 - l2);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      bestIdx = i;
-    }
-  }
-  return [words.slice(0, bestIdx).join(" "), words.slice(bestIdx).join(" ")];
-}
-
-function getRowCharWeight(row: SpotifyArtist[]): number {
-  const letters = row.reduce((acc, a) => {
-    const lines = formatUndercardArtistName(a.name);
-    const maxLine = Math.max(...lines.map((l) => l.length));
-    return acc + maxLine;
-  }, 0);
-  const dots = Math.max(0, row.length - 1) * 2.5;
-  return letters + dots;
-}
-
-/**
- * Distribui os 35 artistas do undercard em exatamente 10 fileiras (em 1:1) ou 11 fileiras (em 9:16),
- * garantindo SEMPRE de 3 a 4 artistas por linha (jamais 1 ou 2 artistas isolados) e equalizando
- * a soma de caracteres entre as fileiras (trocando nomes longos por curtos quando necessário)
- * para que todas as linhas preencham ~90% da largura da coluna amarela com espaçamento uniforme.
+ * Agrupa os 35 artistas do undercard em linhas contínuas de 2 a 4 artistas (ou 1 solo para nomes muito longos),
+ * mantendo cada artista 100% inteiro em uma única linha (sem quebrar nomes como "TRAVIS SCOTT" em 2 andares).
+ * Em 9:16 gera ~14 a 16 linhas densas com texto ampliado e coeso, e em 1:1 gera ~10 a 12 linhas equilibradas.
  */
 function buildLollaUndercardRows(
   undercard: SpotifyArtist[],
@@ -139,77 +101,51 @@ function buildLollaUndercardRows(
 ): SpotifyArtist[][] {
   if (undercard.length === 0) return [];
 
-  const targetRows = Math.min(
-    10,
-    Math.max(1, Math.round(undercard.length / 3.5))
-  );
+  const targetChars = isSquare ? 48 : 34;
+  const soloThreshold = isSquare ? 32 : 26;
 
-  // 1. Divide inicialmente os 35 artistas em `targetRows` fileiras de 3 a 4 artistas cada
   const rows: SpotifyArtist[][] = [];
-  const baseCount = Math.floor(undercard.length / targetRows);
-  const extraCount = undercard.length % targetRows;
-  let cursor = 0;
+  let currentRow: SpotifyArtist[] = [];
+  let currentChars = 0;
 
-  for (let r = 0; r < targetRows; r++) {
-    // Intercala fileiras de 4 e 3 artistas
-    const count = baseCount + (r < extraCount ? 1 : 0);
-    rows.push(undercard.slice(cursor, cursor + count));
-    cursor += count;
+  for (const artist of undercard) {
+    const clean = artist.name.trim().toUpperCase();
+    const len = clean.length;
+
+    // Se o nome for longo demais para caber com outro artista, dá uma linha solo
+    if (len >= soloThreshold) {
+      if (currentRow.length > 0) {
+        rows.push(currentRow);
+        currentRow = [];
+        currentChars = 0;
+      }
+      rows.push([artist]);
+      continue;
+    }
+
+    const addedChars = currentRow.length > 0 ? len + 3 : len;
+    if (currentChars + addedChars <= targetChars) {
+      currentRow.push(artist);
+      currentChars += addedChars;
+    } else {
+      if (currentRow.length > 0) {
+        rows.push(currentRow);
+      }
+      currentRow = [artist];
+      currentChars = len;
+    }
+  }
+  if (currentRow.length > 0) {
+    rows.push(currentRow);
   }
 
-  // 2. Equaliza a largura de caracteres entre fileiras (evita que 2-3 nomes de 20 letras fiquem juntos
-  // na mesma linha enquanto outra linha fica só com nomes de 5 letras)
-  for (let iter = 0; iter < 30; iter++) {
-    let heaviestIdx = 0;
-    let lightestIdx = 0;
-    let maxWeight = -Infinity;
-    let minWeight = Infinity;
-
-    rows.forEach((row, idx) => {
-      const w = getRowCharWeight(row);
-      if (w > maxWeight) {
-        maxWeight = w;
-        heaviestIdx = idx;
-      }
-      if (w < minWeight) {
-        minWeight = w;
-        lightestIdx = idx;
-      }
-    });
-
-    if (maxWeight - minWeight <= 6 || heaviestIdx === lightestIdx) {
-      break;
-    }
-
-    const heavyRow = rows[heaviestIdx];
-    const lightRow = rows[lightestIdx];
-
-    // Procura o par (artista longo na linha pesada, artista curto na linha leve) que melhor equilibra ambas
-    const idealDiff = (maxWeight - minWeight) / 2;
-    let bestH = -1;
-    let bestL = -1;
-    let bestScore = Infinity;
-
-    for (let h = 0; h < heavyRow.length; h++) {
-      for (let l = 0; l < lightRow.length; l++) {
-        const delta = heavyRow[h].name.length - lightRow[l].name.length;
-        if (delta > 1) {
-          const score = Math.abs(delta - idealDiff);
-          if (score < bestScore) {
-            bestScore = score;
-            bestH = h;
-            bestL = l;
-          }
-        }
-      }
-    }
-
-    if (bestH !== -1 && bestL !== -1) {
-      const temp = heavyRow[bestH];
-      heavyRow[bestH] = lightRow[bestL];
-      lightRow[bestL] = temp;
-    } else {
-      break;
+  // Equalização: se a última linha ficou com 1 artista muito curto e a anterior tem 3+, redistribui
+  if (rows.length >= 2) {
+    const lastRow = rows[rows.length - 1];
+    const prevRow = rows[rows.length - 2];
+    if (lastRow.length === 1 && prevRow.length >= 3 && lastRow[0].name.length < soloThreshold) {
+      const moved = prevRow.pop();
+      if (moved) lastRow.unshift(moved);
     }
   }
 
@@ -228,9 +164,9 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
           ...lineup.singleStageUndercard,
         ];
 
-  // Coluna Esquerda (Ciano): 10 Headliners com altura uniforme e alinhados à direita
+  // Coluna Esquerda (Ciano): 10 Headliners com cap-height uniforme e alinhados à direita
   const headliners = allArtists.slice(0, 10);
-  // Coluna Direita (Amarelo-Limão): 35 artistas do Undercard em fileiras equalizadas de 3 a 4 nomes
+  // Coluna Direita (Amarelo-Limão): 35 artistas do Undercard em fileiras densas e agrupadas
   const undercard = allArtists.slice(10);
   const undercardRows = buildLollaUndercardRows(undercard, isSquare);
 
@@ -239,47 +175,47 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
   return (
     <div className="w-full h-full bg-[#EB5746] text-[#181818] flex flex-col justify-between relative overflow-hidden select-none font-sans">
-      {/* 1. Arte Oficial Limpa de Fundo (Moldura "15", Hibiscos, Mão Rock, Espirais Ciano, Campo Amarelo, Pássaro e Crowd-Surfer) */}
+      {/* 1. Arte Oficial Limpa de Fundo embutida como Data URI (zero falhas no html-to-image e offline) */}
       <img
-        src="/images/lolla-bg-clean.png"
+        src={LOLLA_BG_DATA_URI}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0"
       />
 
-      {/* 2. Cabeçalho Oficial: Data/Local à Esquerda (Ciano) + Wordmark 3D Extrudado à Direita (Amarelo, longe dos hibiscos) */}
+      {/* 2. Cabeçalho Oficial: Data/Local à Esquerda (Ciano) + Wordmark 3D Extrudado à Direita (Amarelo) */}
       <div
         className={`relative z-10 w-full flex items-center ${
           isSquare ? "pt-[5.5%] pb-1" : "pt-[6.8%] pb-1.5"
         }`}
       >
-        {/* Data e Local (Coluna Ciano: 0% a 38.4%, com pl-7 para nunca encostar no "15" do canto superior esquerdo) */}
-        <div className="w-[38.4%] text-right pl-7 pr-2">
+        {/* Data e Local (Coluna Ciano: 0% a 38.4%, com pl-6 para nunca encostar no "15" do canto superior esquerdo) */}
+        <div className="w-[38.4%] text-right pl-6 sm:pl-7 pr-2">
           <p
             className={`font-sans font-extrabold text-[#161616] tracking-tight leading-[1.12] ${
-              isSquare ? "text-[8px] sm:text-[9px]" : "text-[7.5px] sm:text-[8.5px]"
+              isSquare ? "text-[8px] sm:text-[9.5px]" : "text-[7.5px] sm:text-[8.5px]"
             }`}
           >
             Março 19, 20 e 21 de 2027
           </p>
           <p
             className={`font-sans font-bold text-[#161616] tracking-tight leading-[1.12] ${
-              isSquare ? "text-[8px] sm:text-[9px]" : "text-[7.5px] sm:text-[8.5px]"
+              isSquare ? "text-[8px] sm:text-[9.5px]" : "text-[7.5px] sm:text-[8.5px]"
             }`}
           >
             Autódromo de Interlagos
           </p>
           <p
             className={`font-sans font-bold text-[#161616] tracking-tight leading-[1.12] ${
-              isSquare ? "text-[8px] sm:text-[9px]" : "text-[7.5px] sm:text-[8.5px]"
+              isSquare ? "text-[8px] sm:text-[9.5px]" : "text-[7.5px] sm:text-[8.5px]"
             }`}
           >
             São Paulo, SP
           </p>
         </div>
 
-        {/* Logo Principal 3D Branco/Preto estilo Lollapalooza Brasil (pr-11 para não encostar nos hibiscos do canto direito) */}
-        <div className="w-[61.6%] pl-2 pr-10 sm:pr-12 flex flex-col items-center justify-center">
+        {/* Logo Principal 3D Branco/Preto estilo Lollapalooza Brasil (pr-10 para não encostar nos hibiscos do canto direito) */}
+        <div className="w-[61.6%] pl-2 pr-9 sm:pr-11 flex flex-col items-center justify-center">
           <div className="relative inline-flex flex-col items-center -rotate-[1.5deg]">
             <span
               className={`font-lolla uppercase text-white tracking-[0.03em] leading-[0.88] select-none text-center whitespace-nowrap ${
@@ -306,7 +242,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
             </span>
             <span
               className={`bg-[#141414] text-white font-lolla uppercase tracking-[0.22em] px-2.5 py-[1px] rounded-full mt-1 shadow-[1.5px_2px_0px_#141414] ${
-                isSquare ? "text-[7px] sm:text-[8px]" : "text-[6.8px] sm:text-[7.8px]"
+                isSquare ? "text-[7px] sm:text-[8.5px]" : "text-[6.8px] sm:text-[7.8px]"
               }`}
             >
               BRASIL
@@ -318,11 +254,11 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
       {/* 3. Corpo Principal do Lineup: Coluna Esquerda (38.4% Ciano) + Coluna Direita (61.6% Amarelo) */}
       <div
         className={`relative z-10 flex-1 w-full flex items-stretch overflow-hidden ${
-          isSquare ? "pt-0.5 pb-[5.8%]" : "pt-1 pb-[6.8%]"
+          isSquare ? "pt-1 pb-[5.8%]" : "pt-1 pb-[6.8%]"
         }`}
       >
-        {/* COLUNA ESQUERDA (38.4%): 10 Headliners com Cap-Height Uniforme e Zero Truncamento */}
-        <div className="w-[38.4%] flex flex-col justify-between text-right pl-5 pr-1.5 sm:pr-2 py-0.5">
+        {/* COLUNA ESQUERDA (38.4%): 10 Headliners com Cap-Height Uniforme, Grande Destaque e Zero Truncamento */}
+        <div className="w-[38.4%] flex flex-col justify-between text-right pl-4 sm:pl-5 pr-1.5 sm:pr-2 py-0.5">
           {headliners.map((artist) => {
             const lines = formatHeadlinerLines(artist.name);
             const maxEffectiveLen = Math.max(
@@ -331,21 +267,17 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
               )
             );
 
-            const sizeClass = isSquare
-              ? maxEffectiveLen > 16
-                ? "text-[12px] sm:text-[13.5px]"
-                : maxEffectiveLen > 13
-                ? "text-[14px] sm:text-[15.5px]"
-                : maxEffectiveLen > 11
-                ? "text-[15.5px] sm:text-[17.5px]"
-                : "text-[17px] sm:text-[19px]"
-              : maxEffectiveLen > 16
-              ? "text-[11px] sm:text-[12.2px]"
-              : maxEffectiveLen > 13
-              ? "text-[12.8px] sm:text-[14.2px]"
-              : maxEffectiveLen > 11
-              ? "text-[14.5px] sm:text-[16.2px]"
-              : "text-[16.5px] sm:text-[18.5px]";
+            const sizeStyle = isSquare
+              ? maxEffectiveLen > 15
+                ? "clamp(13.5px, 2.9cqw, 16.5px)"
+                : maxEffectiveLen > 12
+                ? "clamp(15px, 3.3cqw, 18.5px)"
+                : "clamp(17px, 3.8cqw, 21.5px)"
+              : maxEffectiveLen > 15
+                ? "clamp(12px, 3.6cqw, 15px)"
+                : maxEffectiveLen > 12
+                ? "clamp(13.5px, 4.0cqw, 17px)"
+                : "clamp(15.5px, 4.5cqw, 19.5px)";
 
             return (
               <div
@@ -355,17 +287,18 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 {lines.map((lineObj, lIdx) => (
                   <div
                     key={lIdx}
-                    className={`inline-flex items-center justify-end font-lolla font-black uppercase text-[#181818] tracking-[-0.02em] whitespace-nowrap ${sizeClass}`}
+                    className="inline-flex items-center justify-end font-lolla font-black uppercase text-[#181818] tracking-[-0.02em] whitespace-nowrap"
                     style={{
-                      lineHeight: lines.length > 1 ? "0.86" : "0.91",
-                      WebkitTextStroke: "0.45px #181818",
+                      fontSize: sizeStyle,
+                      lineHeight: lines.length > 1 ? "0.86" : "0.92",
+                      WebkitTextStroke: "0.5px #181818",
                     }}
                   >
                     <span>{lineObj.main}</span>
                     {lineObj.stackedConnector && (
                       <span
                         className="inline-flex flex-col items-start justify-center ml-[3px] text-[0.46em] leading-[0.86] tracking-normal"
-                        style={{ WebkitTextStroke: "0.2px #181818" }}
+                        style={{ WebkitTextStroke: "0.25px #181818" }}
                       >
                         {lineObj.stackedConnector.map((cWord, cIdx) => (
                           <span key={cIdx}>{cWord}</span>
@@ -379,54 +312,50 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* COLUNA DIREITA (61.6%): 35 Artistas do Undercard em Fileiras Equalizadas (3 a 4 Artistas) Justificadas Ponta a Ponta */}
-        <div className="w-[61.6%] flex flex-col justify-between text-left pl-1.5 pr-2.5 sm:pr-3 py-0.5 overflow-hidden">
+        {/* COLUNA DIREITA (61.6%): 35 Artistas do Undercard em Fileiras Coesas, Nomes Maiores e Agrupados com Bullet */}
+        <div className="w-[61.6%] flex flex-col justify-between text-center pl-1 sm:pl-1.5 pr-2.5 sm:pr-3 py-0.5 overflow-hidden">
           {undercardRows.map((row, rIdx) => {
-            const totalRowWeight = getRowCharWeight(row);
+            const totalChars =
+              row.reduce((acc, a) => acc + a.name.length, 0) +
+              (row.length - 1) * 3;
 
             // Escala adaptativa geométrica calibrada via cqw (container query width):
-            // Garante 100% de visibilidade de todos os nomes sem jamais cortar na lateral direita
             const fontSizeStyle = isSquare
-              ? totalRowWeight > 44
-                ? "clamp(8.8px, 2.05cqw, 11.5px)"
-                : totalRowWeight > 38
-                ? "clamp(9.5px, 2.22cqw, 12.5px)"
-                : "clamp(10.2px, 2.4cqw, 13.5px)"
-              : totalRowWeight > 44
-              ? "clamp(6.8px, 1.95cqw, 9.2px)"
-              : totalRowWeight > 38
-              ? "clamp(7.4px, 2.15cqw, 10.2px)"
-              : "clamp(8.0px, 2.3cqw, 11.0px)";
+              ? totalChars > 45
+                ? "clamp(11.5px, 2.3cqw, 14px)"
+                : totalChars > 36
+                ? "clamp(12.5px, 2.5cqw, 15.5px)"
+                : "clamp(13.5px, 2.7cqw, 17px)"
+              : totalChars > 34
+                ? "clamp(10.2px, 2.7cqw, 12.5px)"
+                : totalChars > 26
+                ? "clamp(11.2px, 2.95cqw, 13.6px)"
+                : "clamp(12px, 3.15cqw, 14.5px)";
 
             return (
               <div
                 key={rIdx}
-                className="w-full flex items-center justify-between leading-none overflow-hidden"
+                className="w-full flex items-center justify-center flex-nowrap leading-none overflow-hidden"
+                style={{ fontSize: fontSizeStyle }}
               >
                 {row.map((artist, aIdx) => {
-                  const lines = formatUndercardArtistName(artist.name);
+                  const upperName = artist.name.trim().toUpperCase();
                   return (
                     <React.Fragment key={artist.id}>
-                      <div
-                        className="inline-flex flex-col items-center justify-center text-center font-lolla font-black uppercase text-[#181818] tracking-[-0.01em]"
+                      <span
+                        className="font-lolla font-black uppercase text-[#181818] tracking-[-0.01em] whitespace-nowrap"
                         style={{
-                          fontSize: fontSizeStyle,
-                          lineHeight: lines.length > 1 ? "0.86" : "0.94",
                           WebkitTextStroke: "0.32px #181818",
                         }}
                       >
-                        {lines.map((line, lIdx) => (
-                          <span key={lIdx} className="whitespace-nowrap">
-                            {line}
-                          </span>
-                        ))}
-                      </div>
+                        {upperName}
+                      </span>
                       {aIdx < row.length - 1 && (
                         <span
-                          className={`text-[#26B6D4] font-sans font-black leading-none mx-[2px] select-none ${
+                          className={`text-[#26B6D4] font-sans font-black leading-none mx-1 sm:mx-1.5 select-none ${
                             isSquare
-                              ? "text-[8px] sm:text-[9px]"
-                              : "text-[7px] sm:text-[8px]"
+                              ? "text-[8px] sm:text-[9.5px]"
+                              : "text-[7.5px] sm:text-[8.5px]"
                           }`}
                         >
                           •

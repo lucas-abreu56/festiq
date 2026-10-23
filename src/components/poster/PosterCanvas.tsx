@@ -40,7 +40,7 @@ export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
       return (
         <div
           aria-hidden="true"
-          className="fixed -left-[9999px] top-0 pointer-events-none select-none overflow-hidden"
+          className="fixed top-0 left-0 pointer-events-none select-none overflow-hidden opacity-0 -z-50"
           style={{ width: `${baseWidth}px`, height: `${baseHeight}px` }}
         >
           <div

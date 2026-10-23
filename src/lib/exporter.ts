@@ -12,6 +12,26 @@ export async function exportPosterAsPng(node: HTMLElement): Promise<string> {
     }
   }
 
+  // Garante que todas as imagens (inclusive data-URIs e background assets) estejam decodificadas
+  const images = Array.from(node.querySelectorAll("img"));
+  await Promise.all(
+    images.map(async (img) => {
+      if (!img.complete) {
+        await new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        });
+      }
+      if (img.decode) {
+        try {
+          await img.decode();
+        } catch {
+          // ignora falha de decode
+        }
+      }
+    })
+  );
+
   const aspectRatio = node.getAttribute("data-aspect-ratio") || "9:16";
   const isSquare = aspectRatio === "1:1";
 
@@ -28,7 +48,7 @@ export async function exportPosterAsPng(node: HTMLElement): Promise<string> {
     canvasHeight: targetHeight,
     pixelRatio: ratio,
     quality: 1,
-    cacheBust: true,
+    cacheBust: false,
     style: {
       transform: "none",
       left: "0px",

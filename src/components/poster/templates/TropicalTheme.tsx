@@ -1,6 +1,10 @@
 import React from "react";
 import { FestivalLineup } from "@/lib/lineup-engine";
 import { SpotifyArtist } from "@/lib/mock-artists";
+import {
+  PLANETA_RAIL_LEFT_DATA_URI,
+  PLANETA_RAIL_RIGHT_DATA_URI,
+} from "@/lib/assets/planeta-rails";
 
 interface ThemeProps {
   lineup: FestivalLineup;
@@ -181,7 +185,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
       {/* 1. COLUNA ILUSTRADA ESQUERDA (Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas + Linha Preta Vertical) */}
       <div className="relative h-full w-[18.5%] flex-shrink-0 overflow-hidden">
         <img
-          src="/images/planeta-rail-left.png"
+          src={PLANETA_RAIL_LEFT_DATA_URI}
           alt=""
           aria-hidden="true"
           className="w-full h-full object-fill pointer-events-none select-none"
@@ -638,7 +642,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
       {/* 5. COLUNA ILUSTRADA DIREITA (Linha Preta Vertical + Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas) */}
       <div className="relative h-full w-[18.5%] flex-shrink-0 overflow-hidden">
         <img
-          src="/images/planeta-rail-right.png"
+          src={PLANETA_RAIL_RIGHT_DATA_URI}
           alt=""
           aria-hidden="true"
           className="w-full h-full object-fill pointer-events-none select-none"
