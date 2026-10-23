@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:mobile": "node tests/mobile-posters.test.mjs"
+    "test:mobile": "node tests/mobile-posters.test.mjs",
+    "test:suite": "node tests/full-system-suite.test.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

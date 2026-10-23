@@ -105,7 +105,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
   } = buildFlogGnawRows(allArtists);
 
   const rawTitle = (lineup.title || "CAMP FLOG GNAW").trim().toUpperCase();
-  const presenter = `${allArtists[0]?.name?.split(" ")[0]?.toUpperCase() || "FESTIQ STUDIO"} PRESENTS...`;
+  const presenter = `${allArtists[0]?.name?.split(" ")[0]?.toUpperCase() || "FESTIQ STUDIO"} PRESENTS`;
 
   return (
     <div

@@ -19,8 +19,8 @@ async function runMobileE2E() {
   console.log('Iniciando validação Playwright mobile...');
 
   const browser = await chromium.launch({
-    executablePath: process.env.CHROME_BIN || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   const context = await browser.newContext({

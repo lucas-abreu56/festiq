@@ -46,7 +46,7 @@ export async function exportPosterAsPng(node: HTMLElement): Promise<string> {
     height: baseHeight,
     canvasWidth: targetWidth,
     canvasHeight: targetHeight,
-    pixelRatio: ratio,
+    pixelRatio: 1,
     quality: 1,
     cacheBust: false,
     style: {
