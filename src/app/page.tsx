@@ -108,8 +108,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Status de Conexão Spotify */}
-          <div className="flex items-center gap-3">
+          {/* Navegação e Status de Conexão Spotify */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/sobre"
+              className="px-2.5 py-1.5 rounded-lg text-xs font-mono text-[#A3A3A3] hover:text-[#CEFF00] hover:bg-[#1E1E1E] transition-colors inline-flex items-center gap-1"
+              title="Sobre o Festiq, tecnologia e FAQ"
+            >
+              <span>Sobre & FAQ</span>
+            </Link>
+
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1E1E1E] border border-[#CEFF00]/50 rounded-full text-xs font-mono text-[#CEFF00] font-bold">
@@ -238,7 +246,14 @@ export default function HomePage() {
             <span>·</span>
             <p>Criador de lineups e pôsteres comemorativos integrados à Spotify Web API.</p>
           </div>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4 text-[11px]">
+            <Link
+              href="/sobre"
+              className="text-[#A3A3A3] hover:text-[#CEFF00] transition-colors underline-offset-4 hover:underline"
+            >
+              Sobre & FAQ
+            </Link>
+            <span>•</span>
             <Link
               href="/privacidade"
               className="text-[#A3A3A3] hover:text-[#CEFF00] transition-colors underline-offset-4 hover:underline"
@@ -253,11 +268,18 @@ export default function HomePage() {
               Termos
             </Link>
             <span>•</span>
+            <a
+              href="https://github.com/lucas-abreu56/festiq"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#A3A3A3] hover:text-white transition-colors underline-offset-4 hover:underline"
+            >
+              GitHub
+            </a>
+            <span>•</span>
             <span className="px-2 py-0.5 rounded bg-[#1E1E1E] text-[#CEFF00] font-bold">
               9:16 & 1:1 HQ
             </span>
-            <span>•</span>
-            <span className="text-[#A3A3A3]">Tributos com artes e identidades originais</span>
           </div>
         </div>
       </footer>
