@@ -64,9 +64,9 @@ function buildFlogGnawRows(allArtists: SpotifyArtist[]): {
   const midDuos = allArtists.slice(3, 5);
   const midHeadliners = allArtists.slice(5, 9);
 
-  // Pool do topo: 14 artistas distribuídos em 5 fileiras de 2 a 3 artistas
-  const topPool = allArtists.slice(9, 23);
-  const topPattern = [2, 3, 3, 3, 3];
+  // Pool do topo: 11 artistas distribuídos em 3 fileiras progressivas
+  const topPool = allArtists.slice(9, 20);
+  const topPattern = [3, 4, 4];
   const topUndercard: SpotifyArtist[][] = [];
   let tCursor = 0;
   for (const size of topPattern) {
@@ -78,11 +78,11 @@ function buildFlogGnawRows(allArtists: SpotifyArtist[]): {
     topUndercard.push(topPool.slice(tCursor));
   }
 
-  // Pool da base: até 22 artistas distribuídos em fileiras equilibradas de 3 a 4 artistas
-  const bottomPool = allArtists.slice(23);
+  // Pool da base: demais artistas distribuídos em 5 fileiras equilibradas
+  const bottomPool = allArtists.slice(20);
   const bottomUndercard: SpotifyArtist[][] = [];
   let bCursor = 0;
-  const bottomPattern = [4, 4, 4, 4, 3, 3];
+  const bottomPattern = [5, 5, 5, 5, 5];
   for (const size of bottomPattern) {
     if (bCursor >= bottomPool.length) break;
     bottomUndercard.push(bottomPool.slice(bCursor, bCursor + size));
@@ -291,27 +291,19 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           isSquare ? "px-6 py-1" : "px-3 py-1.5"
         }`}
       >
-        {/* FILEIRAS 1 A 5: TOP UNDERCARD & TRANSIÇÃO (Crescendo em direção ao centro) */}
+        {/* FILEIRAS 1 A 3: TOP UNDERCARD (Crescendo em direção ao centro) */}
         {topUndercard.map((row, rIdx) => {
           const fontSizeStyle = isSquare
             ? rIdx === 0
-              ? "clamp(9.8px, 2.2cqw, 12px)"
+              ? "clamp(9.5px, 2.2cqw, 12px)"
               : rIdx === 1
-              ? "clamp(10.5px, 2.4cqw, 13px)"
-              : rIdx === 2
-              ? "clamp(11.2px, 2.6cqw, 14px)"
-              : rIdx === 3
-              ? "clamp(12px, 2.8cqw, 15px)"
-              : "clamp(13px, 3.2cqw, 16.5px)"
+              ? "clamp(10.2px, 2.4cqw, 12.8px)"
+              : "clamp(11px, 2.6cqw, 13.5px)"
             : rIdx === 0
-            ? "clamp(9.2px, 2.3cqw, 11px)"
+            ? "clamp(8.8px, 2.2cqw, 11px)"
             : rIdx === 1
-            ? "clamp(9.8px, 2.5cqw, 12px)"
-            : rIdx === 2
-            ? "clamp(10.5px, 2.7cqw, 13px)"
-            : rIdx === 3
-            ? "clamp(11.5px, 2.9cqw, 14px)"
-            : "clamp(12.5px, 3.3cqw, 15.5px)";
+            ? "clamp(9.5px, 2.4cqw, 11.8px)"
+            : "clamp(10.2px, 2.6cqw, 12.5px)";
 
           return (
             <div
@@ -320,7 +312,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
-                const lines = stackFlogGnawName(artist.name, rIdx < 2 ? 14 : 12);
+                const lines = stackFlogGnawName(artist.name, 11);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -350,17 +342,17 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           );
         })}
 
-        {/* FILEIRA 6: CO-HEADLINERS (2 Artistas de grande peso acima do centro) */}
+        {/* FILEIRA 4: CO-HEADLINERS (2 Artistas de grande peso acima do centro) */}
         <div
           className="w-full flex items-center justify-center gap-x-2 leading-none"
           style={{
             fontSize: isSquare
-              ? "clamp(15px, 3.8cqw, 20px)"
-              : "clamp(13.5px, 3.8cqw, 18px)",
+              ? "clamp(13px, 3.2cqw, 16.5px)"
+              : "clamp(11.8px, 3.2cqw, 15px)",
           }}
         >
           {coHeadliners.map((artist, aIdx) => {
-            const lines = stackFlogGnawName(artist.name, 14);
+            const lines = stackFlogGnawName(artist.name, 12);
             return (
               <React.Fragment key={artist.id}>
                 <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -388,7 +380,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* FILEIRA 7: O CENTRO GRAVITACIONAL — HEADLINER SUPREMO #1 (O maior nome do cartaz, no coração da imagem!) */}
+        {/* FILEIRA 5: O CENTRO GRAVITACIONAL — HEADLINER SUPREMO #1 */}
         <div className="w-full flex items-center justify-center leading-none my-0.5">
           {mainHeadliner && (
             <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -397,7 +389,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
                   key={lIdx}
                   className="font-display font-black uppercase text-white whitespace-nowrap tracking-wider"
                   style={{
-                    fontSize: isSquare ? "clamp(20px, 5.2cqw, 28px)" : "clamp(18px, 5.2cqw, 25px)",
+                    fontSize: isSquare ? "clamp(17px, 4.2cqw, 22px)" : "clamp(15.5px, 4.4cqw, 20.5px)",
                     WebkitTextStroke: "0.9px #0E0E0E",
                     paintOrder: "stroke fill",
                     textShadow:
@@ -411,17 +403,17 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           )}
         </div>
 
-        {/* FILEIRA 8: SUB-HEADLINERS (3 a 4 Artistas abaixo do centro) */}
+        {/* FILEIRA 6: SUB-HEADLINERS (3 a 4 Artistas abaixo do centro) */}
         <div
           className="w-full flex items-center justify-center gap-x-1.5 leading-none"
           style={{
             fontSize: isSquare
-              ? "clamp(12.5px, 3.0cqw, 16px)"
-              : "clamp(11.2px, 2.9cqw, 14.5px)",
+              ? "clamp(11px, 2.5cqw, 14px)"
+              : "clamp(10px, 2.5cqw, 12.8px)",
           }}
         >
           {midHeadliners.map((artist, aIdx) => {
-            const lines = stackFlogGnawName(artist.name, 12);
+            const lines = stackFlogGnawName(artist.name, 11);
             return (
               <React.Fragment key={artist.id}>
                 <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -449,17 +441,17 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* FILEIRA 9: DUOS DE DESTAQUE */}
+        {/* FILEIRA 7: DUOS DE DESTAQUE */}
         <div
           className="w-full flex items-center justify-center gap-x-2 leading-none"
           style={{
             fontSize: isSquare
-              ? "clamp(13.5px, 3.4cqw, 17.5px)"
-              : "clamp(12px, 3.3cqw, 15.5px)",
+              ? "clamp(11.8px, 2.8cqw, 15px)"
+              : "clamp(10.8px, 2.8cqw, 13.8px)",
           }}
         >
           {midDuos.map((artist, aIdx) => {
-            const lines = stackFlogGnawName(artist.name, 14);
+            const lines = stackFlogGnawName(artist.name, 12);
             return (
               <React.Fragment key={artist.id}>
                 <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -487,19 +479,11 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* FILEIRAS 10 A 14: BOTTOM UNDERCARD (Decrescendo até a floresta) */}
+        {/* FILEIRAS 8+: BOTTOM UNDERCARD (Decrescendo até a floresta) */}
         {bottomUndercard.map((row, rIdx) => {
           const fontSizeStyle = isSquare
-            ? rIdx === 0
-              ? "clamp(11.5px, 2.7cqw, 14.5px)"
-              : rIdx === 1
-              ? "clamp(10.8px, 2.5cqw, 13.5px)"
-              : "clamp(10px, 2.3cqw, 12.5px)"
-            : rIdx === 0
-            ? "clamp(10.8px, 2.7cqw, 13.5px)"
-            : rIdx === 1
-            ? "clamp(10.2px, 2.5cqw, 12.5px)"
-            : "clamp(9.5px, 2.3cqw, 11.5px)";
+            ? "clamp(9.5px, 2.2cqw, 12px)"
+            : "clamp(8.8px, 2.2cqw, 11px)";
 
           return (
             <div
@@ -508,7 +492,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
-                const lines = stackFlogGnawName(artist.name, 12);
+                const lines = stackFlogGnawName(artist.name, 10);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center justify-center text-center leading-none">

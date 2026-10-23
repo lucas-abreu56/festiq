@@ -118,7 +118,7 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
     >
       {/* 1. TOPO: Íris Concêntrica Pontilhada Multicolorida + Logotipo Central */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
-        <div className={`relative flex items-center justify-center ${isSquare ? "w-42 h-42" : "w-46 h-46"}`}>
+        <div className={`relative flex items-center justify-center ${isSquare ? "w-36 h-36" : "w-46 h-46"}`}>
           <svg
             viewBox="0 0 280 280"
             className="w-full h-full"
@@ -195,12 +195,12 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
           style={{
             fontSize: isSquare
               ? sortedArtists.length > 40
-                ? "clamp(11.5px, 2.2cqw, 13px)"
-                : "clamp(12.5px, 2.4cqw, 14px)"
+                ? "clamp(10.8px, 2.0cqw, 12px)"
+                : "clamp(11.8px, 2.2cqw, 13px)"
               : sortedArtists.length > 40
-              ? "clamp(10.8px, 2.5cqw, 12px)"
-              : "clamp(11.5px, 2.7cqw, 13px)",
-            lineHeight: isSquare ? "1.26" : "1.28",
+              ? "clamp(10.5px, 2.4cqw, 11.8px)"
+              : "clamp(11.2px, 2.6cqw, 12.8px)",
+            lineHeight: isSquare ? "1.20" : "1.24",
           }}
         >
           {sortedArtists.map((artist, idx) => {

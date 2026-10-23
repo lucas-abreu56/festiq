@@ -83,10 +83,9 @@ function buildPlanetaUndercardRows(
 ): SpotifyArtist[][] {
   if (artists.length === 0) return [];
 
-  // Em 9:16 o espaço útil entre os rails é de ~220px; 3 artistas por fileira
-  // com nomes empilhados garante fontes encorpadas (9.2px–12px) e zero corte.
-  // Em 1:1 (340px úteis), 3 a 4 artistas por fileira.
-  const targetPerRow = isSquare ? 4 : 3;
+  // Em 9:16 e 1:1 o espaço útil entre os rails é de ~220px (e ~340px em 1:1);
+  // 3 artistas por fileira garante largura confortável e zero corte contra as palmeiras
+  const targetPerRow = 3;
   const numRows = Math.max(1, Math.ceil(artists.length / targetPerRow));
   const baseSize = Math.floor(artists.length / numRows);
   const remainder = artists.length % numRows;
@@ -184,13 +183,15 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
   // Estrutura fiel ao cartaz oficial do Planeta Atlântida:
   // Linha 1: 3 Headliners principais separados por raios (⚡) e empilhados em 2 linhas
   const row1Headliners = allArtists.slice(0, 3);
-  // Linhas 2 e 3: Co-Headliners em fileiras de 2 artistas (com nomes compostos empilhados)
-  const row2CoHeadliners = allArtists.slice(3, 5);
-  const row3CoHeadliners = allArtists.slice(5, 7);
-  // Linhas 4 e 5: Sub-Headliners Médios (3 artistas por fileira)
-  const row4SubHeadliners = allArtists.slice(7, 10);
-  const row5SubHeadliners = allArtists.slice(10, 13);
-  // Undercard: Demais artistas distribuídos em fileiras equalizadas de 3 artistas (ou 3-4 em 1:1)
+  // Linhas 2 a 6: 10 artistas de destaque em fileiras de 2 artistas (blindagem contra as palmeiras laterais)
+  const featureDuos = [
+    allArtists.slice(3, 5),
+    allArtists.slice(5, 7),
+    allArtists.slice(7, 9),
+    allArtists.slice(9, 11),
+    allArtists.slice(11, 13),
+  ].filter((r) => r.length > 0);
+  // Undercard: Demais artistas distribuídos em fileiras equalizadas de 3 artistas
   const undercardRows = buildPlanetaUndercardRows(allArtists.slice(13), isSquare);
 
   const dotColors = ["text-[#0097A7]", "text-[#E64A19]", "text-[#00897B]"];
@@ -504,14 +505,14 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             })}
           </div>
 
-          {/* LINHAS 2 e 3: Co-Headliners (2 artistas por fileira com •) */}
-          {[row2CoHeadliners, row3CoHeadliners].map((coRow, cIdx) => (
+          {/* LINHAS 2 a 6: Artistas de Destaque em Duos (2 artistas por fileira com •) */}
+          {featureDuos.map((duoRow, dIdx) => (
             <div
-              key={`co-${cIdx}`}
+              key={`duo-${dIdx}`}
               className="w-full flex items-center justify-center gap-2 leading-none"
             >
-              {coRow.map((artist, idx) => {
-                const lines = stackPlanetaName(artist.name, 12);
+              {duoRow.map((artist, idx) => {
+                const lines = stackPlanetaName(artist.name, 11);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center text-center leading-none">
@@ -521,8 +522,12 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                           className="font-sans font-black uppercase text-[#141414] whitespace-nowrap tracking-tight"
                           style={{
                             fontSize: isSquare
-                              ? "clamp(11.5px, 2.6cqw, 14px)"
-                              : "clamp(10px, 2.5cqw, 13px)",
+                              ? dIdx < 2
+                                ? "clamp(11px, 2.5cqw, 13.5px)"
+                                : "clamp(10.2px, 2.3cqw, 12.5px)"
+                              : dIdx < 2
+                              ? "clamp(9.8px, 2.4cqw, 12.2px)"
+                              : "clamp(9.0px, 2.3cqw, 11.2px)",
                             lineHeight: lines.length > 1 ? "0.92" : "1.0",
                           }}
                         >
@@ -530,51 +535,10 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                         </span>
                       ))}
                     </div>
-                    {idx < coRow.length - 1 && (
-                      <span
-                        className={`font-black text-[8px] leading-none flex-shrink-0 ${
-                          dotColors[cIdx % dotColors.length]
-                        }`}
-                      >
-                        •
-                      </span>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-          ))}
-
-          {/* LINHAS 4 e 5: Sub-Headliners (3 artistas por fileira com •) */}
-          {[row4SubHeadliners, row5SubHeadliners].map((subRow, sIdx) => (
-            <div
-              key={`sub-${sIdx}`}
-              className="w-full flex items-center justify-center gap-1.5 leading-none"
-            >
-              {subRow.map((artist, idx) => {
-                const lines = stackPlanetaName(artist.name, 11);
-                return (
-                  <React.Fragment key={artist.id}>
-                    <div className="inline-flex flex-col items-center text-center leading-none">
-                      {lines.map((line, lIdx) => (
-                        <span
-                          key={lIdx}
-                          className="font-sans font-extrabold uppercase text-[#141414] whitespace-nowrap tracking-tight"
-                          style={{
-                            fontSize: isSquare
-                              ? "clamp(11px, 2.4cqw, 13.5px)"
-                              : "clamp(9.5px, 2.4cqw, 12.5px)",
-                            lineHeight: lines.length > 1 ? "0.92" : "1.0",
-                          }}
-                        >
-                          {line}
-                        </span>
-                      ))}
-                    </div>
-                    {idx < subRow.length - 1 && (
+                    {idx < duoRow.length - 1 && (
                       <span
                         className={`font-black text-[7.5px] leading-none flex-shrink-0 ${
-                          dotColors[(sIdx + 1) % dotColors.length]
+                          dotColors[dIdx % dotColors.length]
                         }`}
                       >
                         •
@@ -586,11 +550,11 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             </div>
           ))}
 
-          {/* LINHAS 6+: Undercard Equalizado (3 artistas por fileira em 9:16) */}
+          {/* LINHAS 7+: Undercard Equalizado (3 artistas por fileira) */}
           {undercardRows.map((row, rIdx) => {
             const fontSizeStyle = isSquare
-              ? "clamp(11px, 2.3cqw, 14.5px)"
-              : "clamp(9.2px, 2.3cqw, 12px)";
+              ? "clamp(9.8px, 2.1cqw, 12.2px)"
+              : "clamp(8.5px, 2.1cqw, 10.5px)";
 
             return (
               <div
@@ -598,7 +562,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 className="w-full flex items-center justify-center gap-x-1 leading-none"
               >
                 {row.map((artist, aIdx) => {
-                  const lines = stackPlanetaName(artist.name, 11);
+                  const lines = stackPlanetaName(artist.name, 10);
                   return (
                     <React.Fragment key={artist.id}>
                       <div className="inline-flex flex-col items-center text-center leading-none">

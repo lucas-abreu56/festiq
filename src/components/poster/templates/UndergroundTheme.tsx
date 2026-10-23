@@ -227,7 +227,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
             <span
               className="block font-display font-black uppercase text-white whitespace-nowrap tracking-wide"
               style={{
-                fontSize: isSquare ? "clamp(21px, 5.0cqw, 28px)" : "clamp(19px, 5.4cqw, 27px)",
+                fontSize: isSquare ? "clamp(18px, 4.4cqw, 24px)" : "clamp(17px, 4.8cqw, 23px)",
                 WebkitTextStroke: "0.8px #E2E2E2",
                 textShadow: "0 0 8px rgba(255,255,255,0.35)",
               }}
@@ -246,7 +246,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 key={lIdx}
                 className="font-display font-bold uppercase text-[#D8D8D8] whitespace-nowrap tracking-tight"
                 style={{
-                  fontSize: isSquare ? "clamp(11.5px, 2.6cqw, 15px)" : "clamp(10.5px, 2.8cqw, 13.5px)",
+                  fontSize: isSquare ? "clamp(10.5px, 2.4cqw, 13.5px)" : "clamp(9.8px, 2.5cqw, 12.5px)",
                   lineHeight: "0.88",
                 }}
               >
@@ -265,7 +265,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 key={lIdx}
                 className="font-display font-black uppercase text-white whitespace-nowrap tracking-wide"
                 style={{
-                  fontSize: isSquare ? "clamp(15px, 3.8cqw, 21px)" : "clamp(13.5px, 3.8cqw, 18.5px)",
+                  fontSize: isSquare ? "clamp(13.5px, 3.4cqw, 18px)" : "clamp(12.5px, 3.5cqw, 16.5px)",
                   WebkitTextStroke: "0.5px #E2E2E2",
                   lineHeight: "0.92",
                 }}
@@ -285,7 +285,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                 key={lIdx}
                 className="font-display font-bold uppercase text-[#D8D8D8] whitespace-nowrap tracking-tight"
                 style={{
-                  fontSize: isSquare ? "clamp(11.5px, 2.6cqw, 15px)" : "clamp(10.5px, 2.8cqw, 13.5px)",
+                  fontSize: isSquare ? "clamp(10.5px, 2.4cqw, 13.5px)" : "clamp(9.8px, 2.5cqw, 12.5px)",
                   lineHeight: "0.88",
                 }}
               >
@@ -307,7 +307,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       key={lIdx}
                       className="font-display font-bold uppercase text-white whitespace-nowrap tracking-tight"
                       style={{
-                        fontSize: isSquare ? "clamp(12px, 2.8cqw, 15.5px)" : "clamp(10.8px, 2.8cqw, 14px)",
+                        fontSize: isSquare ? "clamp(10.5px, 2.4cqw, 13.5px)" : "clamp(9.8px, 2.5cqw, 12.5px)",
                         lineHeight: lines.length > 1 ? "0.9" : "1.0",
                       }}
                     >
@@ -335,7 +335,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       key={lIdx}
                       className="font-display font-extrabold uppercase text-[#ECECEC] whitespace-nowrap tracking-tight"
                       style={{
-                        fontSize: isSquare ? "clamp(11px, 2.4cqw, 14px)" : "clamp(10px, 2.5cqw, 12.8px)",
+                        fontSize: isSquare ? "clamp(9.8px, 2.2cqw, 12.5px)" : "clamp(9.0px, 2.3cqw, 11.5px)",
                         lineHeight: lines.length > 1 ? "0.9" : "1.0",
                       }}
                     >
@@ -354,8 +354,8 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {/* LINHAS 5 EM DIANTE: UNDERCARD BRUTALISTA DENSO COM SEPARADORES ★ */}
         {undercardRows.map((row, rIdx) => {
           const fontSizeStyle = isSquare
-            ? "clamp(12px, 2.4cqw, 15.5px)"
-            : "clamp(9.8px, 2.4cqw, 13px)";
+            ? "clamp(9.8px, 2.1cqw, 12.2px)"
+            : "clamp(8.8px, 2.2cqw, 11px)";
 
           return (
             <div
@@ -364,7 +364,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
-                const lines = stackUndergroundName(artist.name, 11);
+                const lines = stackUndergroundName(artist.name, 10);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center justify-center text-center leading-none">

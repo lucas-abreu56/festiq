@@ -278,7 +278,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
       {/* 3. Corpo Principal do Lineup: Coluna Esquerda (38.4% Ciano) + Coluna Direita (61.6% Amarelo) */}
       <div
         className={`relative z-10 flex-1 w-full flex items-stretch overflow-hidden ${
-          isSquare ? "pt-1 pb-[5.8%]" : "pt-1 pb-[6.8%]"
+          isSquare ? "pt-1 pb-[2.5%]" : "pt-1 pb-[3.5%]"
         }`}
       >
         {/* COLUNA ESQUERDA (38.4%): 10 Headliners com Cap-Height Uniforme, Grande Destaque e Zero Truncamento */}
@@ -293,15 +293,15 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
             const sizeStyle = isSquare
               ? maxEffectiveLen > 15
+                ? "clamp(13.5px, 2.8cqw, 16px)"
+                : maxEffectiveLen > 12
                 ? "clamp(14.5px, 3.1cqw, 17.5px)"
-                : maxEffectiveLen > 12
-                ? "clamp(16px, 3.5cqw, 19.5px)"
-                : "clamp(18px, 4.0cqw, 22.5px)"
+                : "clamp(16px, 3.5cqw, 19.5px)"
               : maxEffectiveLen > 15
-                ? "clamp(13px, 3.8cqw, 16px)"
+                ? "clamp(12px, 3.4cqw, 14.5px)"
                 : maxEffectiveLen > 12
-                ? "clamp(14.5px, 4.2cqw, 18px)"
-                : "clamp(16.5px, 4.8cqw, 20.5px)";
+                ? "clamp(13.2px, 3.7cqw, 16px)"
+                : "clamp(14.8px, 4.2cqw, 18px)";
 
             return (
               <div
@@ -348,18 +348,18 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
               ? Math.max(...soloLines!.map((l) => l.length))
               : row.reduce((acc, a) => acc + a.name.length, 0) + (row.length - 1) * 3;
 
-            // Escala adaptativa geométrica ampliada via cqw:
+            // Escala adaptativa geométrica equilibrada via cqw:
             const fontSizeStyle = isSquare
               ? effectiveChars > 38
-                ? "clamp(12.8px, 2.55cqw, 15.5px)"
+                ? "clamp(10.5px, 2.2cqw, 13px)"
                 : effectiveChars > 26
-                ? "clamp(13.8px, 2.75cqw, 17px)"
-                : "clamp(15px, 3.0cqw, 18.5px)"
+                ? "clamp(11.5px, 2.4cqw, 14px)"
+                : "clamp(12.5px, 2.6cqw, 15.5px)"
               : effectiveChars > 30
-              ? "clamp(11.2px, 2.85cqw, 13.5px)"
+              ? "clamp(9.5px, 2.5cqw, 12px)"
               : effectiveChars > 20
-              ? "clamp(12.2px, 3.15cqw, 14.6px)"
-              : "clamp(13px, 3.35cqw, 15.6px)";
+              ? "clamp(10.5px, 2.7cqw, 13px)"
+              : "clamp(11.5px, 2.9cqw, 14px)";
 
             return (
               <div
