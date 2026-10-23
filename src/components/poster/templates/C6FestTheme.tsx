@@ -113,12 +113,12 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
   return (
     <div
       className={`w-full h-full bg-[#000000] text-white flex flex-col justify-between relative overflow-hidden select-none font-sans ${
-        isSquare ? "px-6 py-4" : "px-5 py-5"
+        isSquare ? "px-6 py-3.5" : "px-5 py-3.5"
       }`}
     >
       {/* 1. TOPO: Íris Concêntrica Pontilhada Multicolorida + Logotipo Central */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
-        <div className={`relative flex items-center justify-center ${isSquare ? "w-48 h-48" : "w-56 h-56"}`}>
+        <div className={`relative flex items-center justify-center ${isSquare ? "w-42 h-42" : "w-46 h-46"}`}>
           <svg
             viewBox="0 0 280 280"
             className="w-full h-full"
@@ -149,33 +149,25 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
           </svg>
 
           {/* Núcleo Central com o Nome do Festival (Escala adaptativa sem nunca cortar letras) */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-9 pointer-events-none">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 pointer-events-none">
             <span
               className={`font-display font-black uppercase text-white leading-[0.88] tracking-tight ${
                 primary.length <= 3
-                  ? isSquare
-                    ? "text-4xl"
-                    : "text-4xl"
+                  ? "text-3xl"
                   : primary.length <= 6
-                  ? isSquare
-                    ? "text-xl"
-                    : "text-xl"
+                  ? "text-lg"
                   : primary.length <= 10
-                  ? isSquare
-                    ? "text-sm"
-                    : "text-sm"
-                  : "text-xs"
+                  ? "text-xs"
+                  : "text-[10px]"
               }`}
             >
               {primary}
             </span>
             <span
-              className={`font-sans font-light uppercase text-white/95 leading-none tracking-[0.16em] pl-[0.16em] mt-1 ${
+              className={`font-sans font-light uppercase text-white/95 leading-none tracking-[0.16em] pl-[0.16em] mt-0.5 ${
                 secondary.length > 10
-                  ? "text-[10px]"
-                  : isSquare
-                  ? "text-sm"
-                  : "text-sm"
+                  ? "text-[9px]"
+                  : "text-xs"
               }`}
             >
               {secondary}
@@ -185,9 +177,9 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
       </div>
 
       {/* 2. CORPO: Indicador "A a Z" + Bloco Tipográfico Justificado Multicolorido */}
-      <div className="relative z-10 flex-1 flex flex-col justify-center w-full overflow-hidden my-1">
+      <div className="relative z-10 flex-1 flex flex-col justify-center w-full overflow-hidden my-0.5">
         {/* Indicador A a Z alinhado à esquerda */}
-        <div className={isSquare ? "mb-1" : "mb-2"}>
+        <div className="mb-1">
           <span
             className={`font-sans font-normal text-white tracking-[0.2em] ${
               isSquare ? "text-[11px]" : "text-xs"
@@ -199,11 +191,17 @@ export const C6FestTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
         {/* Bloco de Artistas Justificado de Ponta a Ponta (Fiel ao C6 Fest, 100% integral sem truncar) */}
         <div
-          className={`w-full text-justify [text-align-last:justify] uppercase font-sans font-medium ${
-            isSquare
-              ? "text-[13px] leading-[1.38] tracking-[0.045em]"
-              : "text-[12px] leading-[1.46] tracking-[0.045em]"
-          }`}
+          className="w-full text-justify [text-align-last:justify] uppercase font-sans font-medium tracking-[0.04em]"
+          style={{
+            fontSize: isSquare
+              ? sortedArtists.length > 40
+                ? "clamp(11.5px, 2.2cqw, 13px)"
+                : "clamp(12.5px, 2.4cqw, 14px)"
+              : sortedArtists.length > 40
+              ? "clamp(10.8px, 2.5cqw, 12px)"
+              : "clamp(11.5px, 2.7cqw, 13px)",
+            lineHeight: isSquare ? "1.26" : "1.28",
+          }}
         >
           {sortedArtists.map((artist, idx) => {
             const color = C6_LINEUP_COLORS[idx % C6_LINEUP_COLORS.length];
