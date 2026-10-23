@@ -29,7 +29,7 @@ export default function HomePage() {
 
   // Estado de Autenticação e Dados do Spotify
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userName, setUserName] = useState<string>("Lucas");
+  const [userName, setUserName] = useState<string>("");
   const [spotifyArtists, setSpotifyArtists] = useState<SpotifyArtist[]>([]);
   const [, setIsLoadingData] = useState<boolean>(false);
 
@@ -122,7 +122,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2">
                 <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1E1E1E] border border-[#CEFF00]/50 rounded-full text-xs font-mono text-[#CEFF00] font-bold">
                   <CheckCircle className="w-3.5 h-3.5 text-[#CEFF00]" />
-                  Spotify: {userName}
+                  Spotify: {userName || "Conectado"}
                 </span>
                 <a
                   href="/api/auth/logout"

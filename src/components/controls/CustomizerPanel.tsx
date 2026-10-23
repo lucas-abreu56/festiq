@@ -87,10 +87,11 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
 }) => {
   const quickSuggestions = [
     "FESTIQ STUDIO",
-    "C6 FEST",
-    "ROCK IN RIO",
-    `PLANETA ${userName.toUpperCase()}`,
-    `${userName.toUpperCase()}PALOOZA`,
+    "FESTIQ PALOOZA",
+    "PLANETA FESTIQ",
+    "FESTIQ FOREST",
+    "FESTIQ '85",
+    "FESTIQ CARNIVAL",
   ];
 
   return (
