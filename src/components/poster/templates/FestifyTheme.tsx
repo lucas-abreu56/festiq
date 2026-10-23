@@ -7,9 +7,9 @@ interface ThemeProps {
 }
 
 /**
- * Empilha nomes compostos longos em 2 linhas centralizadas (exatamente como
+ * Empilha nomes compostos longos em 2 ou 3 linhas centralizadas (exatamente como
  * "ARCTIC / MONKEYS", "BURY / TOMORROW" e "ARIANA / GRANDE" no pôster original do Festify),
- * mantendo largura compacta para que cada fileira comporte de 4 a 6 artistas sem buracos
+ * mantendo largura compacta para que cada fileira comporte de 3 a 4 artistas sem buracos
  * e sem jamais truncar nenhuma letra (Zero-Truncate Rule).
  */
 function stackFestifyLines(name: string, maxSingleLineChars: number): string[] {
@@ -21,6 +21,20 @@ function stackFestifyLines(name: string, maxSingleLineChars: number): string[] {
   if (words.length === 2) {
     return [words[0], words[1]];
   }
+
+  // Se o nome for longo (> 28 caracteres e >= 4 palavras), quebra em 3 linhas
+  // balanceadas para que cada linha tenha menos de 16 caracteres, blindando contra cortes laterais
+  if (clean.length > 28 && words.length >= 4) {
+    const t1 = Math.round(words.length / 3);
+    const t2 = Math.round((words.length * 2) / 3);
+    const p1 = words.slice(0, t1).join(" ");
+    const p2 = words.slice(t1, t2).join(" ");
+    const p3 = words.slice(t2).join(" ");
+    if (p1 && p2 && p3) {
+      return [p1, p2, p3];
+    }
+  }
+
   let bestIdx = Math.ceil(words.length / 2);
   let bestDiff = Infinity;
   for (let i = 1; i < words.length; i++) {
@@ -41,9 +55,9 @@ function getEffectiveArtistWidth(artist: SpotifyArtist, maxSingleLineChars: numb
 }
 
 /**
- * Divide os 39 artistas do undercard em fileiras simétricas de 5 a 6 artistas (em 1:1)
- * ou 4 a 5 artistas (em 9:16) e equaliza a largura efetiva das fileiras, garantindo
- * espaçamento horizontal e vertical uniforme em toda a pirâmide.
+ * Divide os artistas do undercard em fileiras simétricas de 3 a 4 artistas (em vez de 5–6)
+ * e equaliza a largura efetiva das fileiras, garantindo fontes 75% maiores (10.2px a 13.5px)
+ * e eliminando vãos vazios no pôster.
  */
 function buildFestifyUndercardRows(
   artists: SpotifyArtist[],
@@ -51,22 +65,29 @@ function buildFestifyUndercardRows(
 ): SpotifyArtist[][] {
   if (artists.length === 0) return [];
 
-  // Em 1:1 e 9:16: 8 fileiras de 4 a 5 artistas (sete de 5 artistas + uma de 4 artistas = 39 artistas)
-  // Mantendo espaçamento lateral confortável entre nomes sem sobreposição
-  const pattern = [5, 5, 5, 5, 5, 5, 5, 4];
+  // Padrão de 3 a 4 artistas por fileira: para 39 artistas gera ~10 fileiras
+  // (nove fileiras de 4 artistas + uma fileira de 3 artistas)
+  const targetPerRow = 4;
+  const numRows = Math.max(1, Math.ceil(artists.length / targetPerRow));
+  const baseSize = Math.floor(artists.length / numRows);
+  const remainder = artists.length % numRows;
+
   const rows: SpotifyArtist[][] = [];
   let cursor = 0;
-  let pIdx = 0;
-
-  while (cursor < artists.length) {
-    const size = pattern[pIdx] ?? 5;
+  for (let i = 0; i < numRows; i++) {
+    const size = baseSize + (i < remainder ? 1 : 0);
     rows.push(artists.slice(cursor, cursor + size));
     cursor += size;
-    pIdx++;
+  }
+
+  // Se a última fileira ficou com menos de 3 artistas e a penúltima tem 4, reequilibra
+  if (rows.length > 1 && rows[rows.length - 1].length < 3 && rows[rows.length - 2].length > 3) {
+    const moved = rows[rows.length - 2].pop();
+    if (moved) rows[rows.length - 1].unshift(moved);
   }
 
   const getRowWidth = (row: SpotifyArtist[]) =>
-    row.reduce((acc, a) => acc + getEffectiveArtistWidth(a, 11), 0) +
+    row.reduce((acc, a) => acc + getEffectiveArtistWidth(a, 12), 0) +
     Math.max(0, row.length - 1) * 3;
 
   // Equaliza a largura entre as fileiras trocando nomes longos por curtos quando necessário
@@ -99,8 +120,8 @@ function buildFestifyUndercardRows(
 
     for (let h = 0; h < heavyRow.length; h++) {
       for (let l = 0; l < lightRow.length; l++) {
-        const wH = getEffectiveArtistWidth(heavyRow[h], 11);
-        const wL = getEffectiveArtistWidth(lightRow[l], 11);
+        const wH = getEffectiveArtistWidth(heavyRow[h], 12);
+        const wL = getEffectiveArtistWidth(lightRow[l], 12);
         const delta = wH - wL;
         if (delta > 1) {
           const score = Math.abs(delta - idealDiff);
@@ -217,7 +238,7 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
       {/* 3. Pirâmide de Artistas com Ritmo Vertical Uniforme do Topo até a Cabana (Zero Buracos) */}
       <div
         className={`relative z-10 flex-1 flex flex-col justify-between items-center w-full ${
-          isSquare ? "px-7 py-1.5" : "px-4 py-2.5"
+          isSquare ? "px-5 py-2" : "px-2.5 py-2"
         }`}
       >
         {/* Nível 1: Headliner Supremo */}
@@ -228,8 +249,12 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
               style={{
                 fontSize:
                   mainHeadliner.name.length > 20
-                    ? "clamp(15px, 4.2cqw, 20px)"
-                    : "clamp(17px, 5.0cqw, 24px)",
+                    ? isSquare
+                      ? "clamp(18px, 4.6cqw, 24px)"
+                      : "clamp(16px, 4.4cqw, 22px)"
+                    : isSquare
+                    ? "clamp(22px, 5.6cqw, 29px)"
+                    : "clamp(19px, 5.2cqw, 26px)",
                 letterSpacing: "0.05em",
               }}
             >
@@ -239,11 +264,9 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
         )}
 
         {/* Nível 2: 2 Co-Headliners em 1 Linha com Gap Equilibrado */}
-        <div
-          className={`w-full max-w-[85%] flex items-center justify-around text-center`}
-        >
+        <div className="w-full max-w-[92%] flex items-center justify-around text-center">
           {row2CoHeadliners.map((artist) => {
-            const lines = stackFestifyLines(artist.name, 16);
+            const lines = stackFestifyLines(artist.name, 14);
             return (
               <div key={artist.id} className="inline-flex flex-col items-center leading-none">
                 {lines.map((line, lIdx) => (
@@ -251,7 +274,9 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                     key={lIdx}
                     className="font-sans font-bold uppercase text-[#0D0D0D] whitespace-nowrap"
                     style={{
-                      fontSize: "clamp(11.5px, 3.2cqw, 16px)",
+                      fontSize: isSquare
+                        ? "clamp(14px, 3.8cqw, 19px)"
+                        : "clamp(12.5px, 3.5cqw, 17px)",
                       letterSpacing: "0.04em",
                       lineHeight: lines.length > 1 ? "0.92" : "1.0",
                     }}
@@ -265,9 +290,9 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
 
         {/* Nível 3: 3 Sub-Headliners SEMPRE em 1 Única Linha Horizontal (Empilhando Nomes Longos em 2 Linhas) */}
-        <div className="w-full max-w-[94%] flex items-center justify-between text-center">
+        <div className="w-full max-w-[94%] flex items-center justify-between text-center px-1">
           {row3SubHeadliners.map((artist) => {
-            const lines = stackFestifyLines(artist.name, 13);
+            const lines = stackFestifyLines(artist.name, 12);
             return (
               <div key={artist.id} className="inline-flex flex-col items-center leading-none">
                 {lines.map((line, lIdx) => (
@@ -275,7 +300,9 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                     key={lIdx}
                     className="font-sans font-semibold uppercase text-[#0D0D0D] whitespace-nowrap"
                     style={{
-                      fontSize: "clamp(9.5px, 2.6cqw, 13px)",
+                      fontSize: isSquare
+                        ? "clamp(12.8px, 3.0cqw, 16.5px)"
+                        : "clamp(11px, 2.8cqw, 14.5px)",
                       letterSpacing: "0.03em",
                       lineHeight: lines.length > 1 ? "0.92" : "1.0",
                     }}
@@ -290,12 +317,12 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
 
         {/* Fileiras do Undercard (Irmãs Diretas no Flexbox para Preencher Verticalmente até a Cabana sem Buracos) */}
         {undercardRows.map((row, rIdx) => {
-          const isShorterRow = row.length <= 4;
+          const isShorterRow = row.length <= 3;
           return (
             <div
               key={rIdx}
               className={`w-full ${
-                isShorterRow ? "max-w-[86%]" : "max-w-[98%]"
+                isShorterRow ? "max-w-[88%]" : "max-w-[96%]"
               } flex items-center justify-between text-center px-1`}
             >
               {row.map((artist) => {
@@ -311,10 +338,10 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                         className="font-sans font-semibold uppercase text-[#141414] whitespace-nowrap"
                         style={{
                           fontSize: isSquare
-                            ? "clamp(7.5px, 1.9cqw, 9.5px)"
-                            : "clamp(6.8px, 1.95cqw, 8.8px)",
+                            ? "clamp(12px, 2.4cqw, 16px)"
+                            : "clamp(10.2px, 2.6cqw, 13.5px)",
                           letterSpacing: "0.02em",
-                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                          lineHeight: lines.length > 1 ? "0.90" : "1.0",
                         }}
                       >
                         {line}
