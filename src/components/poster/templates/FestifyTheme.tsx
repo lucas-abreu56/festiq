@@ -65,9 +65,11 @@ function buildFestifyUndercardRows(
 ): SpotifyArtist[][] {
   if (artists.length === 0) return [];
 
-  // Padrão de 3 a 4 artistas por fileira: para 39 artistas gera ~10 fileiras
-  // (nove fileiras de 4 artistas + uma fileira de 3 artistas)
-  const targetPerRow = 4;
+  // Padrão de artistas por fileira:
+  // Em 9:16: 4 artistas por fileira (~10 fileiras para 39 artistas)
+  // Em 1:1: 5 artistas por fileira (~8 fileiras para 39 artistas), aproveitando os 540px de largura
+  // e reduzindo o consumo vertical para eliminar sobreposições de linhas.
+  const targetPerRow = isSquare ? 5 : 4;
   const numRows = Math.max(1, Math.ceil(artists.length / targetPerRow));
   const baseSize = Math.floor(artists.length / numRows);
   const remainder = artists.length % numRows;
@@ -275,10 +277,10 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                     className="font-sans font-bold uppercase text-[#0D0D0D] whitespace-nowrap"
                     style={{
                       fontSize: isSquare
-                        ? "clamp(14px, 3.8cqw, 19px)"
+                        ? "clamp(13px, 3.2cqw, 16.5px)"
                         : "clamp(12.5px, 3.5cqw, 17px)",
                       letterSpacing: "0.04em",
-                      lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                      lineHeight: lines.length > 1 ? "0.88" : "1.0",
                     }}
                   >
                     {line}
@@ -301,10 +303,10 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                     className="font-sans font-semibold uppercase text-[#0D0D0D] whitespace-nowrap"
                     style={{
                       fontSize: isSquare
-                        ? "clamp(12.8px, 3.0cqw, 16.5px)"
+                        ? "clamp(11.8px, 2.6cqw, 14.5px)"
                         : "clamp(11px, 2.8cqw, 14.5px)",
                       letterSpacing: "0.03em",
-                      lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                      lineHeight: lines.length > 1 ? "0.88" : "1.0",
                     }}
                   >
                     {line}
@@ -318,11 +320,12 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {/* Fileiras do Undercard (Irmãs Diretas no Flexbox para Preencher Verticalmente até a Cabana sem Buracos) */}
         {undercardRows.map((row, rIdx) => {
           const isShorterRow = row.length <= 3;
+          const isMidRow = row.length === 4;
           return (
             <div
               key={rIdx}
               className={`w-full ${
-                isShorterRow ? "max-w-[88%]" : "max-w-[96%]"
+                isShorterRow ? "max-w-[85%]" : isMidRow ? "max-w-[92%]" : "max-w-[97%]"
               } flex items-center justify-between text-center px-1`}
             >
               {row.map((artist) => {
@@ -338,10 +341,10 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
                         className="font-sans font-semibold uppercase text-[#141414] whitespace-nowrap"
                         style={{
                           fontSize: isSquare
-                            ? "clamp(12px, 2.4cqw, 16px)"
+                            ? "clamp(11px, 2.1cqw, 13.8px)"
                             : "clamp(10.2px, 2.6cqw, 13.5px)",
                           letterSpacing: "0.02em",
-                          lineHeight: lines.length > 1 ? "0.90" : "1.0",
+                          lineHeight: lines.length > 1 ? "0.88" : "1.0",
                         }}
                       >
                         {line}

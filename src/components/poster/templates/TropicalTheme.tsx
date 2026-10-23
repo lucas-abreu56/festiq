@@ -51,9 +51,9 @@ function stackPlanetaName(name: string, maxSingleChars: number): string[] {
     if (words.length === 4) return [words.slice(0, 2).join(" "), words.slice(2).join(" ")];
   }
 
-  // Se o nome for muito longo (> 24 caracteres e >= 4 palavras), quebra em 3 linhas
-  // balanceadas para manter cada linha < 16 caracteres, blindando contra cortes laterais
-  if (clean.length > 24 && words.length >= 4) {
+  // Se o nome for longo (>= 20 caracteres e >= 4 palavras), quebra em 3 linhas
+  // balanceadas para manter cada linha < 12 caracteres, blindando contra cortes laterais
+  if (clean.length >= 20 && words.length >= 4) {
     const t1 = Math.round(words.length / 3);
     const t2 = Math.round((words.length * 2) / 3);
     const p1 = words.slice(0, t1).join(" ");
@@ -89,9 +89,11 @@ function buildPlanetaUndercardRows(
 ): SpotifyArtist[][] {
   if (artists.length === 0) return [];
 
-  // Em 9:16 e 1:1 o espaço útil entre os rails é de ~220px (e ~340px em 1:1);
-  // 3 artistas por fileira garante largura confortável e zero corte contra as palmeiras
-  const targetPerRow = 3;
+  // Em 9:16 o espaço útil entre os rails é de ~220px (3 artistas por fileira).
+  // Em 1:1 a largura lógica é de 540px (+50% maior) com ~340px livres:
+  // 4 artistas por fileira garante largura folgada por artista (~85px) sem risco de corte lateral,
+  // enquanto reduz o undercard para 8 fileiras com proporção ideal.
+  const targetPerRow = isSquare ? 4 : 3;
   const numRows = Math.max(1, Math.ceil(artists.length / targetPerRow));
   const baseSize = Math.floor(artists.length / numRows);
   const remainder = artists.length % numRows;
@@ -189,15 +191,25 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
   // Estrutura fiel ao cartaz oficial do Planeta Atlântida:
   // Linha 1: 3 Headliners principais separados por raios (⚡) e empilhados em 2 linhas
   const row1Headliners = allArtists.slice(0, 3);
-  // Linhas 2 a 6: 10 artistas de destaque em fileiras de 2 artistas (blindagem contra as palmeiras laterais)
-  const featureDuos = [
-    allArtists.slice(3, 5),
-    allArtists.slice(5, 7),
-    allArtists.slice(7, 9),
-    allArtists.slice(9, 11),
-    allArtists.slice(11, 13),
-  ].filter((r) => r.length > 0);
-  // Undercard: Demais artistas distribuídos em fileiras equalizadas de 3 artistas
+  // Linhas de destaque (10 artistas após os 3 headliners):
+  // Em 9:16 (vertical): 5 fileiras de 2 artistas (blindagem contra as palmeiras laterais).
+  // Em 1:1 (quadrado): agrupa em 4 fileiras (2, 3, 2, 3) mantendo no máximo 3 artistas por fileira
+  // para garantir espaçamento generoso e zero corte lateral.
+  const featureRows = isSquare
+    ? [
+        allArtists.slice(3, 5),
+        allArtists.slice(5, 8),
+        allArtists.slice(8, 10),
+        allArtists.slice(10, 13),
+      ].filter((r) => r.length > 0)
+    : [
+        allArtists.slice(3, 5),
+        allArtists.slice(5, 7),
+        allArtists.slice(7, 9),
+        allArtists.slice(9, 11),
+        allArtists.slice(11, 13),
+      ].filter((r) => r.length > 0);
+  // Undercard: Demais artistas distribuídos em fileiras equalizadas de 4 (1:1) ou 3 (9:16) artistas
   const undercardRows = buildPlanetaUndercardRows(allArtists.slice(13), isSquare);
 
   const dotColors = ["text-[#0097A7]", "text-[#E64A19]", "text-[#00897B]"];
@@ -228,7 +240,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
       {/* 2. PALCO CENTRAL: Globo 3D com Letra Centralizada + Saba em Atlântida + Lineup Uniforme + Rodapé Oficial */}
       <div
         className={`relative z-10 flex-1 h-full flex flex-col justify-between items-center text-center overflow-hidden ${
-          isSquare ? "px-3.5 py-1.5" : "px-3.5 py-2"
+          isSquare ? "px-2 py-1.5" : "px-3.5 py-2"
         }`}
       >
         {/* TOPO: Globo Azul 3D + Letra Dourada Centralizada no Meio + "3 E 4 DE FEVEREIRO / NA SABA, EM ATLÂNTIDA" */}
@@ -237,7 +249,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             viewBox="0 0 280 172"
             className={
               isSquare
-                ? "w-[124px] h-auto -mb-1"
+                ? "w-[114px] h-auto -mb-1"
                 : "w-[150px] h-auto -mb-1"
             }
             fill="none"
@@ -511,14 +523,14 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             })}
           </div>
 
-          {/* LINHAS 2 a 6: Artistas de Destaque em Duos (2 artistas por fileira com •) */}
-          {featureDuos.map((duoRow, dIdx) => (
+          {/* LINHAS DE DESTAQUE: 5 duos (9:16) ou 3 fileiras (1:1) com separador • */}
+          {featureRows.map((row, dIdx) => (
             <div
-              key={`duo-${dIdx}`}
+              key={`feature-${dIdx}`}
               className="w-full flex items-center justify-center gap-2 leading-none"
             >
-              {duoRow.map((artist, idx) => {
-                const lines = stackPlanetaName(artist.name, 11);
+              {row.map((artist, idx) => {
+                const lines = stackPlanetaName(artist.name, isSquare ? 10 : 11);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center text-center leading-none">
@@ -528,20 +540,20 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                           className="font-sans font-black uppercase text-[#141414] whitespace-nowrap tracking-tight"
                           style={{
                             fontSize: isSquare
-                              ? dIdx < 2
-                                ? "clamp(11px, 2.5cqw, 13.5px)"
-                                : "clamp(10.2px, 2.3cqw, 12.5px)"
+                              ? dIdx < 1
+                                ? "clamp(10.5px, 2.3cqw, 13px)"
+                                : "clamp(9.8px, 2.1cqw, 12px)"
                               : dIdx < 2
                               ? "clamp(9.8px, 2.4cqw, 12.2px)"
                               : "clamp(9.0px, 2.3cqw, 11.2px)",
-                            lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                            lineHeight: lines.length > 1 ? "0.90" : "1.0",
                           }}
                         >
                           {line}
                         </span>
                       ))}
                     </div>
-                    {idx < duoRow.length - 1 && (
+                    {idx < row.length - 1 && (
                       <span
                         className={`font-black text-[7.5px] leading-none flex-shrink-0 ${
                           dotColors[dIdx % dotColors.length]
@@ -556,10 +568,10 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             </div>
           ))}
 
-          {/* LINHAS 7+: Undercard Equalizado (3 artistas por fileira) */}
+          {/* LINHAS DO UNDERCARD: Undercard Equalizado (4 artistas em 1:1, 3 artistas em 9:16) */}
           {undercardRows.map((row, rIdx) => {
             const fontSizeStyle = isSquare
-              ? "clamp(9.8px, 2.1cqw, 12.2px)"
+              ? "clamp(8.8px, 1.8cqw, 10.8px)"
               : "clamp(8.5px, 2.1cqw, 10.5px)";
 
             return (

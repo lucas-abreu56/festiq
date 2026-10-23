@@ -144,7 +144,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
           {/* Brasão Gótico Caligráfico Halftone em SVG */}
           <svg
             viewBox="0 0 340 105"
-            className={`w-full block select-none pointer-events-none ${isSquare ? "h-[62px]" : "h-[74px]"}`}
+            className={`w-full block select-none pointer-events-none ${isSquare ? "h-[54px]" : "h-[74px]"}`}
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -354,7 +354,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {/* LINHAS 5 EM DIANTE: UNDERCARD BRUTALISTA DENSO COM SEPARADORES ★ */}
         {undercardRows.map((row, rIdx) => {
           const fontSizeStyle = isSquare
-            ? "clamp(9.8px, 2.1cqw, 12.2px)"
+            ? "clamp(9.4px, 2.0cqw, 11.6px)"
             : "clamp(8.8px, 2.2cqw, 11px)";
 
           return (
@@ -372,7 +372,7 @@ export const UndergroundTheme: React.FC<ThemeProps> = ({ lineup }) => {
                         <span
                           key={lIdx}
                           className="font-display font-bold uppercase text-[#C8C8C8] whitespace-nowrap tracking-tight"
-                          style={{ lineHeight: lines.length > 1 ? "0.9" : "1.0" }}
+                          style={{ lineHeight: lines.length > 1 ? "0.85" : "1.0" }}
                         >
                           {l}
                         </span>
