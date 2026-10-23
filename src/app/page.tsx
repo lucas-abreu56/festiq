@@ -60,17 +60,10 @@ export default function HomePage() {
     fetchSpotifyData(timeRange);
   }, [fetchSpotifyData, timeRange]);
 
-  // Artistas finais
+  // Artistas base (do Spotify autenticado ou mock padrão)
   const activeArtists = useMemo(() => {
-    const base = isAuthenticated && spotifyArtists.length > 0 ? spotifyArtists : MOCK_ARTISTS;
-
-    if (shuffleSeed > 0) {
-      const headliners = base.slice(0, 3);
-      const rest = [...base.slice(3)].sort(() => Math.random() - 0.5);
-      return [...headliners, ...rest];
-    }
-    return base;
-  }, [isAuthenticated, spotifyArtists, shuffleSeed]);
+    return isAuthenticated && spotifyArtists.length > 0 ? spotifyArtists : MOCK_ARTISTS;
+  }, [isAuthenticated, spotifyArtists]);
 
   // Nome ativo: sempre "FESTIQ STUDIO" salvo quando o usuário digitar algo
   const activeFestivalName = festivalName.trim() || "FESTIQ STUDIO";
@@ -85,8 +78,9 @@ export default function HomePage() {
       timeRange,
       aspectRatio,
       targetGenre,
+      shuffleSeed,
     });
-  }, [activeArtists, activeFestivalName, themeId, mode, timeRange, aspectRatio, targetGenre]);
+  }, [activeArtists, activeFestivalName, themeId, mode, timeRange, aspectRatio, targetGenre, shuffleSeed]);
 
   return (
     <div className="min-h-screen bg-[#141414] text-[#F7F6EB] flex flex-col selection:bg-[#CEFF00] selection:text-black relative overflow-x-hidden font-sans">
@@ -177,7 +171,7 @@ export default function HomePage() {
               Órbita 3D Interativa · Passe o mouse para inspecionar
             </span>
           </div>
-          <CircularCarousel artists={activeArtists} />
+          <CircularCarousel artists={lineup.allArtists} />
         </section>
 
         {/* Layout do Estúdio: Palco de Preview à Esquerda e Painel de Mixagem à Direita */}

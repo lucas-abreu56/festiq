@@ -145,6 +145,51 @@ export function sortArtistsByPopularity(artists: SpotifyArtist[]): SpotifyArtist
 }
 
 /**
+ * Gera uma variação determinística dos artistas do Mock de acordo com o período selecionado no Modo Demo
+ */
+export function getMockArtistsForTimeRange(timeRange: TimeRange): SpotifyArtist[] {
+  if (timeRange === "short_term") {
+    // 4 Semanas (Contemporâneo / Alta Rotação Pop, Trap & Indie)
+    return [...MOCK_ARTISTS].sort((a, b) => {
+      // Prioriza artistas contemporâneos e de alta popularidade
+      const scoreA = a.popularity + (a.genres.some(g => ["trap", "hyperpop", "dance pop", "electropop", "bedroom pop"].some(k => g.includes(k))) ? 15 : 0);
+      const scoreB = b.popularity + (b.genres.some(g => ["trap", "hyperpop", "dance pop", "electropop", "bedroom pop"].some(k => g.includes(k))) ? 15 : 0);
+      return scoreB - scoreA;
+    });
+  }
+
+  if (timeRange === "long_term") {
+    // Todo o Tempo (Histórico Completo / Lendas e Clássicos)
+    return [...MOCK_ARTISTS].sort((a, b) => {
+      // Prioriza artistas clássicos / históricos do rock, mpb, reggae e metal
+      const isClassicA = a.genres.some(g => ["classic rock", "roots reggae", "tropicalia", "heavy metal", "post-punk", "bossa nova"].some(k => g.includes(k)));
+      const isClassicB = b.genres.some(g => ["classic rock", "roots reggae", "tropicalia", "heavy metal", "post-punk", "bossa nova"].some(k => g.includes(k)));
+      if (isClassicA && !isClassicB) return -1;
+      if (!isClassicA && isClassicB) return 1;
+      return b.popularity - a.popularity;
+    });
+  }
+
+  // medium_term: Ordem padrão curada do festival
+  return MOCK_ARTISTS;
+}
+
+/**
+ * Embaralhamento determinístico usando gerador pseudo-aleatório baseado em seed (LGC)
+ */
+function seededShuffle<T>(array: T[], seed: number): T[] {
+  const result = [...array];
+  let s = seed;
+  for (let i = result.length - 1; i > 0; i--) {
+    s = (s * 9301 + 49297) % 233280;
+    const rnd = s / 233280;
+    const j = Math.floor(rnd * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
  * Constrói a estrutura equilibrada do festival
  */
 export function buildFestivalLineup({
@@ -155,6 +200,7 @@ export function buildFestivalLineup({
   timeRange = "medium_term",
   aspectRatio = "9:16",
   targetGenre,
+  shuffleSeed = 0,
 }: {
   artists: SpotifyArtist[];
   festivalName?: string;
@@ -163,8 +209,14 @@ export function buildFestivalLineup({
   timeRange?: TimeRange;
   aspectRatio?: PosterAspectRatio;
   targetGenre?: string;
+  shuffleSeed?: number;
 }): FestivalLineup {
-  let processed = deduplicateArtists(artists.length > 0 ? artists : MOCK_ARTISTS);
+  // Se estiver usando o mock (artistas vazios ou mock padrão), aplica a variação por período
+  const basePool = artists && artists.length > 0 && artists !== MOCK_ARTISTS
+    ? artists
+    : getMockArtistsForTimeRange(timeRange);
+
+  let processed = deduplicateArtists(basePool);
 
   if (mode === "genre" && targetGenre) {
     processed = filterArtistsByGenre(processed, targetGenre);
@@ -176,6 +228,24 @@ export function buildFestivalLineup({
   // No modo 'genre', a integridade do gênero já foi estritamente garantida por filterArtistsByGenre.
   if (mode !== "genre" && processed.length < 30) {
     processed = deduplicateArtists([...processed, ...MOCK_ARTISTS]);
+  }
+
+  // Aplicação do Shuffle determinístico respeitando as regras do modo ativo
+  if (shuffleSeed > 0) {
+    if (mode === "popularity") {
+      // No modo popularidade, mantém os 3 maiores headliners e embaralha tiers secundários
+      const top3 = processed.slice(0, 3);
+      const subHeadliners = seededShuffle(processed.slice(3, 12), shuffleSeed);
+      const undercard = seededShuffle(processed.slice(12), shuffleSeed + 1);
+      processed = [...top3, ...subHeadliners, ...undercard];
+    } else {
+      // Nos modos taste e genre, permite rotacionar headliners e embaralhar o lineup
+      const shift = shuffleSeed % Math.min(8, Math.max(3, processed.length));
+      const rotated = [...processed.slice(shift), ...processed.slice(0, shift)];
+      const headliners = rotated.slice(0, 3);
+      const rest = seededShuffle(rotated.slice(3), shuffleSeed);
+      processed = [...headliners, ...rest];
+    }
   }
 
   // Divisão clássica de 3 dias (Sex / Sáb / Dom)
