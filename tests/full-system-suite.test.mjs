@@ -261,7 +261,6 @@ async function runFullSuite() {
       { id: "retro", name: "Impresso '85" },
       { id: "c6fest", name: "C6 Minimal" },
       { id: "floggnaw", name: "Camp Carnival" },
-      { id: "underground", name: "Rage Xerox" },
     ];
 
     const ratiosToTest = ["9:16", "1:1"];
@@ -440,10 +439,10 @@ async function runFullSuite() {
     await exportContext.close();
 
     // =========================================================================
-    // PILAR 4: VERIFICAÇÃO ESPECÍFICA DOS NOVOS PÔSTERES (CAMP FLOG GNAW & UNDERGROUND)
+    // PILAR 4: VERIFICAÇÃO ESPECÍFICA DO NOVO PÔSTER (CAMP FLOG GNAW)
     // =========================================================================
     console.log("\n-----------------------------------------------------------------");
-    console.log(" PILAR 4: VERIFICANDO DETALHES VISUAIS DOS 2 NOVOS PÔSTERES");
+    console.log(" PILAR 4: VERIFICANDO DETALHES VISUAIS DO NOVO PÔSTER (CAMP FLOG GNAW)");
     console.log("-----------------------------------------------------------------");
 
     const newPosterContext = await browser.newContext({
@@ -472,28 +471,6 @@ async function runFullSuite() {
         throw new Error("Camp Flog Gnaw Theme falhou na validação de componentes visuais!");
       }
       console.log("✓ Tema 'Camp Carnival' (Flog Gnaw) validado: gradiente sunset, logotipo 3D, tickets e diamante.");
-      testStats.totalAssertions++;
-    }
-
-    // 4.2 Testando Rage Xerox (Underground)
-    const btnUnderground = npPage.getByRole("button", { name: /Rage Xerox/i });
-    if (await btnUnderground.isVisible()) {
-      await btnUnderground.click();
-      await npPage.waitForTimeout(600);
-
-      const rageCheck = await npPage.evaluate(() => {
-        const preview = document.querySelector("#festiq-poster-preview");
-        if (!preview) return { ok: false };
-        const text = preview.textContent || "";
-        const hasConceptOnly = text.includes("VISUAL CONCEPT ONLY");
-        const hasStars = text.includes("★");
-        return { ok: hasConceptOnly && hasStars };
-      });
-
-      if (!rageCheck.ok) {
-        throw new Error("Underground Theme falhou na validação de identidade brutalista!");
-      }
-      console.log("✓ Tema 'Rage Xerox' (Underground) validado: textura xerox, estrelas ★, brasão e VISUAL CONCEPT ONLY.");
       testStats.totalAssertions++;
     }
 

@@ -6,8 +6,7 @@ export type FestivalThemeId =
   | "tropical"
   | "retro"
   | "c6fest"
-  | "floggnaw"
-  | "underground";
+  | "floggnaw";
 export type CreationMode = "taste" | "genre" | "popularity";
 export type TimeRange = "short_term" | "medium_term" | "long_term";
 export type PosterAspectRatio = "9:16" | "1:1";

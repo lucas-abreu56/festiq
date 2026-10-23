@@ -65,13 +65,6 @@ const THEMES: { id: FestivalThemeId; name: string; tag: string; bg: string; text
     bg: "bg-gradient-to-b from-[#2E0854] via-[#DE5B3E] to-[#FBB040]",
     text: "text-[#FFE600]",
   },
-  {
-    id: "underground",
-    name: "Rage Xerox",
-    tag: "Tributo Rap Brutalista",
-    bg: "bg-[#0A0A0A] ring-1 ring-inset ring-[#E0E0E0]/30",
-    text: "text-[#E0E0E0]",
-  },
 ];
 
 const GENRES = ["rock", "pop", "indie", "hip hop", "electronic", "sertanejo", "mpb", "reggae", "metal"];
