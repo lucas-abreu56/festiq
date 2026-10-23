@@ -5,6 +5,8 @@ import { FestifyTheme } from "./templates/FestifyTheme";
 import { TropicalTheme } from "./templates/TropicalTheme";
 import { RetroPressTheme } from "./templates/RetroPressTheme";
 import { C6FestTheme } from "./templates/C6FestTheme";
+import { FlogGnawTheme } from "./templates/FlogGnawTheme";
+import { UndergroundTheme } from "./templates/UndergroundTheme";
 
 interface PosterCanvasProps {
   lineup: FestivalLineup;
@@ -27,6 +29,10 @@ export const PosterCanvas = React.forwardRef<HTMLDivElement, PosterCanvasProps>(
           return <RetroPressTheme lineup={lineup} />;
         case "c6fest":
           return <C6FestTheme lineup={lineup} />;
+        case "floggnaw":
+          return <FlogGnawTheme lineup={lineup} />;
+        case "underground":
+          return <UndergroundTheme lineup={lineup} />;
         default:
           return <LollaWaveTheme lineup={lineup} />;
       }

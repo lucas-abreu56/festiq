@@ -58,6 +58,20 @@ const THEMES: { id: FestivalThemeId; name: string; tag: string; bg: string; text
     bg: "bg-[#000000] ring-1 ring-inset ring-[#E05378]/60",
     text: "text-[#E6D15A]",
   },
+  {
+    id: "floggnaw",
+    name: "Camp Carnival",
+    tag: "Tributo ao Flog Gnaw",
+    bg: "bg-gradient-to-b from-[#2E0854] via-[#DE5B3E] to-[#FBB040]",
+    text: "text-[#FFE600]",
+  },
+  {
+    id: "underground",
+    name: "Rage Xerox",
+    tag: "Tributo Rap Brutalista",
+    bg: "bg-[#0A0A0A] ring-1 ring-inset ring-[#E0E0E0]/30",
+    text: "text-[#E0E0E0]",
+  },
 ];
 
 const GENRES = ["rock", "pop", "indie", "hip hop", "electronic", "sertanejo", "mpb", "reggae", "metal"];
@@ -211,7 +225,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
         <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
           Tema Visual do Festival
         </span>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2.5">
           {THEMES.map((t) => {
             const isSelected = themeId === t.id;
             return (
