@@ -7,11 +7,11 @@ interface ThemeProps {
 }
 
 /**
- * Empilha nomes compostos longos em 2 linhas centralizadas com entrelinha compacta
+ * Empilha nomes compostos longos em 2 ou 3 linhas centralizadas com entrelinha compacta
  * para garantir que bandas grandes (ex: "RED HOT CHILI PEPPERS", "QUEENS OF THE STONE AGE",
- * "CA7RIEL & PACO AMOROSO") apareçam 100% íntegras sem truncar (Zero-Truncate Rule).
+ * "SOPHIA CHABLAU E UMA ENORME PERDA DE TEMPO") apareçam 100% íntegras sem truncar (Zero-Truncate Rule).
  */
-function stackFlogGnawName(name: string, maxSingleChars = 14): string[] {
+function stackFlogGnawName(name: string, maxSingleChars = 13): string[] {
   const clean = name.trim().toUpperCase();
   if (clean.length <= maxSingleChars || !clean.includes(" ")) {
     return [clean];
@@ -20,6 +20,17 @@ function stackFlogGnawName(name: string, maxSingleChars = 14): string[] {
   if (words.length === 2) {
     return [words[0], words[1]];
   }
+
+  // Se o nome for longo (> 24 caracteres e >= 4 palavras), quebra em 3 linhas
+  if (clean.length > 24 && words.length >= 4) {
+    const t1 = Math.round(words.length / 3);
+    const t2 = Math.round((words.length * 2) / 3);
+    const p1 = words.slice(0, t1).join(" ");
+    const p2 = words.slice(t1, t2).join(" ");
+    const p3 = words.slice(t2).join(" ");
+    if (p1 && p2 && p3) return [p1, p2, p3];
+  }
+
   let bestIdx = Math.ceil(words.length / 2);
   let bestDiff = Infinity;
   for (let i = 1; i < words.length; i++) {
@@ -35,43 +46,51 @@ function stackFlogGnawName(name: string, maxSingleChars = 14): string[] {
 }
 
 /**
- * Organiza os 45 artistas na icônica pirâmide de centro gravitacional ("Diamante") do Camp Flog Gnaw Carnival:
+ * Organiza os artistas na icônica pirâmide de centro gravitacional ("Diamante") do Camp Flog Gnaw Carnival:
  * - O Headliner #1 Supremo fica exatamente no CORAÇÃO do cartaz (fileira 7)
- * - As fileiras 1 a 6 crescem gradualmente do topo para o centro
- * - As fileiras 8 a 12 decrescem do centro para a base de pinheiros
+ * - As fileiras do topo (1 a 5) têm 2 a 4 artistas cada, crescendo em direção ao centro
+ * - As fileiras da base (10 a 14) têm 3 a 4 artistas cada, eliminando sobrecargas na roda-gigante
  */
 function buildFlogGnawRows(allArtists: SpotifyArtist[]): {
-  topUndercard: SpotifyArtist[][]; // 5 fileiras (linhas 1 a 5)
-  coHeadliners: SpotifyArtist[];   // Linha 6 (2 artistas)
-  mainHeadliner: SpotifyArtist;    // Linha 7 (1 artista no centro)
-  midHeadliners: SpotifyArtist[];  // Linha 8 (3 a 4 artistas)
-  midDuos: SpotifyArtist[];        // Linha 9 (2 artistas)
-  bottomUndercard: SpotifyArtist[][]; // 3 fileiras (linhas 10 a 12)
+  topUndercard: SpotifyArtist[][];
+  coHeadliners: SpotifyArtist[];
+  mainHeadliner: SpotifyArtist;
+  midHeadliners: SpotifyArtist[];
+  midDuos: SpotifyArtist[];
+  bottomUndercard: SpotifyArtist[][];
 } {
   const mainHeadliner = allArtists[0];
   const coHeadliners = allArtists.slice(1, 3);
   const midDuos = allArtists.slice(3, 5);
   const midHeadliners = allArtists.slice(5, 9);
 
-  // Pool para as 5 fileiras superiores (artistas de transição e topo)
-  const topSlice = allArtists.slice(9, 27);
-  // Distribuição: [5, 4, 4, 3, 2] = 18 artistas
-  const topUndercard: SpotifyArtist[][] = [
-    topSlice.slice(0, 5),   // Linha 1 (5 artistas)
-    topSlice.slice(5, 9),   // Linha 2 (4 artistas)
-    topSlice.slice(9, 13),  // Linha 3 (4 artistas)
-    topSlice.slice(13, 16), // Linha 4 (3 artistas)
-    topSlice.slice(16, 18), // Linha 5 (2 artistas)
-  ].filter((r) => r.length > 0);
+  // Pool do topo: 14 artistas distribuídos em 5 fileiras de 2 a 3 artistas
+  const topPool = allArtists.slice(9, 23);
+  const topPattern = [2, 3, 3, 3, 3];
+  const topUndercard: SpotifyArtist[][] = [];
+  let tCursor = 0;
+  for (const size of topPattern) {
+    if (tCursor >= topPool.length) break;
+    topUndercard.push(topPool.slice(tCursor, tCursor + size));
+    tCursor += size;
+  }
+  if (tCursor < topPool.length) {
+    topUndercard.push(topPool.slice(tCursor));
+  }
 
-  // Pool para as 3 fileiras inferiores
-  const bottomSlice = allArtists.slice(27, 45);
-  // Distribuição: [4, 5, 5] ou mais = até 18 artistas
-  const bottomUndercard: SpotifyArtist[][] = [
-    bottomSlice.slice(0, 4),
-    bottomSlice.slice(4, 9),
-    bottomSlice.slice(9, 18),
-  ].filter((r) => r.length > 0);
+  // Pool da base: até 22 artistas distribuídos em fileiras equilibradas de 3 a 4 artistas
+  const bottomPool = allArtists.slice(23);
+  const bottomUndercard: SpotifyArtist[][] = [];
+  let bCursor = 0;
+  const bottomPattern = [4, 4, 4, 4, 3, 3];
+  for (const size of bottomPattern) {
+    if (bCursor >= bottomPool.length) break;
+    bottomUndercard.push(bottomPool.slice(bCursor, bCursor + size));
+    bCursor += size;
+  }
+  if (bCursor < bottomPool.length) {
+    bottomUndercard.push(bottomPool.slice(bCursor));
+  }
 
   return {
     topUndercard,
@@ -274,25 +293,34 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
       >
         {/* FILEIRAS 1 A 5: TOP UNDERCARD & TRANSIÇÃO (Crescendo em direção ao centro) */}
         {topUndercard.map((row, rIdx) => {
-          const fontSizeStyle =
-            rIdx === 0
-              ? "clamp(8px, 2.2cqw, 10.5px)"
+          const fontSizeStyle = isSquare
+            ? rIdx === 0
+              ? "clamp(9.8px, 2.2cqw, 12px)"
               : rIdx === 1
-              ? "clamp(9px, 2.4cqw, 11.5px)"
+              ? "clamp(10.5px, 2.4cqw, 13px)"
               : rIdx === 2
-              ? "clamp(10px, 2.6cqw, 12.5px)"
+              ? "clamp(11.2px, 2.6cqw, 14px)"
               : rIdx === 3
-              ? "clamp(11.5px, 3.0cqw, 14.5px)"
-              : "clamp(13px, 3.5cqw, 16.5px)";
+              ? "clamp(12px, 2.8cqw, 15px)"
+              : "clamp(13px, 3.2cqw, 16.5px)"
+            : rIdx === 0
+            ? "clamp(9.2px, 2.3cqw, 11px)"
+            : rIdx === 1
+            ? "clamp(9.8px, 2.5cqw, 12px)"
+            : rIdx === 2
+            ? "clamp(10.5px, 2.7cqw, 13px)"
+            : rIdx === 3
+            ? "clamp(11.5px, 2.9cqw, 14px)"
+            : "clamp(12.5px, 3.3cqw, 15.5px)";
 
           return (
             <div
               key={`top-${rIdx}`}
-              className="w-full flex items-center justify-center gap-x-1 sm:gap-x-1.5 leading-none overflow-hidden"
+              className="w-full flex items-center justify-center gap-x-1.5 leading-none overflow-hidden"
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
-                const lines = stackFlogGnawName(artist.name, rIdx < 2 ? 16 : 13);
+                const lines = stackFlogGnawName(artist.name, rIdx < 2 ? 14 : 12);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -325,10 +353,14 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {/* FILEIRA 6: CO-HEADLINERS (2 Artistas de grande peso acima do centro) */}
         <div
           className="w-full flex items-center justify-center gap-x-2 leading-none"
-          style={{ fontSize: "clamp(14px, 3.9cqw, 18.5px)" }}
+          style={{
+            fontSize: isSquare
+              ? "clamp(15px, 3.8cqw, 20px)"
+              : "clamp(13.5px, 3.8cqw, 18px)",
+          }}
         >
           {coHeadliners.map((artist, aIdx) => {
-            const lines = stackFlogGnawName(artist.name, 15);
+            const lines = stackFlogGnawName(artist.name, 14);
             return (
               <React.Fragment key={artist.id}>
                 <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -365,7 +397,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
                   key={lIdx}
                   className="font-display font-black uppercase text-white whitespace-nowrap tracking-wider"
                   style={{
-                    fontSize: isSquare ? "clamp(18px, 4.8cqw, 24px)" : "clamp(17px, 5.2cqw, 23px)",
+                    fontSize: isSquare ? "clamp(20px, 5.2cqw, 28px)" : "clamp(18px, 5.2cqw, 25px)",
                     WebkitTextStroke: "0.9px #0E0E0E",
                     paintOrder: "stroke fill",
                     textShadow:
@@ -382,10 +414,14 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {/* FILEIRA 8: SUB-HEADLINERS (3 a 4 Artistas abaixo do centro) */}
         <div
           className="w-full flex items-center justify-center gap-x-1.5 leading-none"
-          style={{ fontSize: "clamp(11px, 2.8cqw, 14px)" }}
+          style={{
+            fontSize: isSquare
+              ? "clamp(12.5px, 3.0cqw, 16px)"
+              : "clamp(11.2px, 2.9cqw, 14.5px)",
+          }}
         >
           {midHeadliners.map((artist, aIdx) => {
-            const lines = stackFlogGnawName(artist.name, 13);
+            const lines = stackFlogGnawName(artist.name, 12);
             return (
               <React.Fragment key={artist.id}>
                 <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -416,10 +452,14 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
         {/* FILEIRA 9: DUOS DE DESTAQUE */}
         <div
           className="w-full flex items-center justify-center gap-x-2 leading-none"
-          style={{ fontSize: "clamp(12px, 3.2cqw, 15px)" }}
+          style={{
+            fontSize: isSquare
+              ? "clamp(13.5px, 3.4cqw, 17.5px)"
+              : "clamp(12px, 3.3cqw, 15.5px)",
+          }}
         >
           {midDuos.map((artist, aIdx) => {
-            const lines = stackFlogGnawName(artist.name, 15);
+            const lines = stackFlogGnawName(artist.name, 14);
             return (
               <React.Fragment key={artist.id}>
                 <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -447,23 +487,28 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* FILEIRAS 10 A 12: BOTTOM UNDERCARD (Decrescendo até a floresta) */}
+        {/* FILEIRAS 10 A 14: BOTTOM UNDERCARD (Decrescendo até a floresta) */}
         {bottomUndercard.map((row, rIdx) => {
-          const fontSizeStyle =
-            rIdx === 0
-              ? "clamp(10px, 2.6cqw, 12.5px)"
+          const fontSizeStyle = isSquare
+            ? rIdx === 0
+              ? "clamp(11.5px, 2.7cqw, 14.5px)"
               : rIdx === 1
-              ? "clamp(9px, 2.3cqw, 11px)"
-              : "clamp(8px, 2.1cqw, 10px)";
+              ? "clamp(10.8px, 2.5cqw, 13.5px)"
+              : "clamp(10px, 2.3cqw, 12.5px)"
+            : rIdx === 0
+            ? "clamp(10.8px, 2.7cqw, 13.5px)"
+            : rIdx === 1
+            ? "clamp(10.2px, 2.5cqw, 12.5px)"
+            : "clamp(9.5px, 2.3cqw, 11.5px)";
 
           return (
             <div
               key={`bottom-${rIdx}`}
-              className="w-full flex items-center justify-center gap-x-1 sm:gap-x-1.5 leading-none overflow-hidden"
+              className="w-full flex items-center justify-center gap-x-1.5 leading-none overflow-hidden"
               style={{ fontSize: fontSizeStyle }}
             >
               {row.map((artist, aIdx) => {
-                const lines = stackFlogGnawName(artist.name, rIdx === 2 ? 12 : 14);
+                const lines = stackFlogGnawName(artist.name, 12);
                 return (
                   <React.Fragment key={artist.id}>
                     <div className="inline-flex flex-col items-center justify-center text-center leading-none">
@@ -498,7 +543,9 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
       <div className="relative z-10 w-full mt-auto">
         <svg
           viewBox="0 0 360 88"
-          className="w-full h-[62px] sm:h-[72px] block pointer-events-none select-none"
+          className={`w-full block pointer-events-none select-none ${
+            isSquare ? "h-[58px]" : "h-[64px]"
+          }`}
           preserveAspectRatio="none"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
