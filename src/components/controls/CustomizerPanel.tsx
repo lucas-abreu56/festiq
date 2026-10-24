@@ -40,8 +40,8 @@ const THEMES: ThemeMeta[] = [
     previewBg: "bg-gradient-to-r from-[#63CBD8] via-[#63CBD8] to-[#E2F018]",
     renderMiniature: () => (
       <div className="flex items-center gap-1.5 z-10 font-frama font-black italic text-[11px] text-[#0D0D0D]">
-        <span className="w-2 h-2 rounded-full bg-white shadow-sm" />
-        <span className="tracking-tight uppercase">INDIE WAVES</span>
+        <span className="w-2 h-2 rounded-full bg-white shadow-sm flex-shrink-0" />
+        <span className="tracking-tight uppercase">LOLLA</span>
       </div>
     ),
   },
@@ -53,8 +53,8 @@ const THEMES: ThemeMeta[] = [
     previewBg: "bg-gradient-to-b from-[#FDE05D] via-[#FFF194] to-white",
     renderMiniature: () => (
       <div className="flex items-center gap-1.5 z-10 font-sans font-black text-[11px] text-[#2B6EF2]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#2B6EF2]" />
-        <span className="tracking-wider uppercase">FORESTFEST</span>
+        <span className="w-2 h-2 rounded-full bg-[#2B6EF2] flex-shrink-0" />
+        <span className="tracking-wider uppercase">FOREST</span>
       </div>
     ),
   },
@@ -67,7 +67,7 @@ const THEMES: ThemeMeta[] = [
     renderMiniature: () => (
       <div className="flex items-center gap-1.5 z-10 font-sans font-black text-[11px] text-[#141414]">
         <span className="w-2.5 h-2.5 rounded-full bg-[#1E88E5] border border-amber-300 flex-shrink-0" />
-        <span className="tracking-tight uppercase">PLANETA</span>
+        <span className="tracking-tight uppercase">SURF</span>
       </div>
     ),
   },
@@ -78,8 +78,8 @@ const THEMES: ThemeMeta[] = [
     artistCount: 45,
     previewBg: "bg-[#E4D8C1]",
     renderMiniature: () => (
-      <div className="flex items-center gap-1.5 z-10 font-display font-black text-[11px] text-[#1F1C19] border-y border-[#1F1C19]/40 py-0.5">
-        <span className="tracking-widest uppercase">PROGRAMAÇÃO®</span>
+      <div className="flex items-center gap-1 z-10 font-display font-black text-[10.5px] text-[#1F1C19] border-y border-[#1F1C19]/40 py-0.5">
+        <span className="tracking-widest uppercase">1985</span>
       </div>
     ),
   },
@@ -94,7 +94,6 @@ const THEMES: ThemeMeta[] = [
         <span className="w-1.5 h-1.5 rounded-full bg-[#E05378]" />
         <span className="w-1.5 h-1.5 rounded-full bg-[#43B581]" />
         <span className="w-1.5 h-1.5 rounded-full bg-[#62B4D6]" />
-        <span className="tracking-widest uppercase ml-1">C6 MINIMAL</span>
       </div>
     ),
   },
@@ -106,8 +105,8 @@ const THEMES: ThemeMeta[] = [
     previewBg: "bg-gradient-to-b from-[#FFAEC8] via-[#FF7433] to-[#EA2A00]",
     renderMiniature: () => (
       <div className="flex items-center gap-1.5 z-10 font-display font-black text-[11px] text-[#E2F6FE] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-        <span className="w-2 h-2 rounded-full bg-pink-100" />
-        <span className="tracking-wider uppercase">CARNIVAL</span>
+        <span className="w-2 h-2 rounded-full bg-pink-100 flex-shrink-0" />
+        <span className="tracking-wider uppercase">CAMP</span>
       </div>
     ),
   },
@@ -170,10 +169,10 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
               >
                 {/* Miniatura Gráfica Autoral do Tema */}
                 <div
-                  className={`w-full h-11 sm:h-12 rounded-lg relative overflow-hidden mb-2 border border-white/10 shadow-inner flex items-center justify-between px-2.5 ${t.previewBg}`}
+                  className={`w-full h-11 sm:h-12 rounded-lg relative overflow-hidden mb-2 border border-white/10 shadow-inner flex items-center justify-between px-2 sm:px-2.5 ${t.previewBg}`}
                 >
                   {t.renderMiniature()}
-                  <span className="relative z-10 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[9px] font-mono font-bold text-[#CEFF00] border border-white/10 shadow-sm flex-shrink-0">
+                  <span className="relative z-10 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[8.5px] sm:text-[9px] font-mono font-bold text-[#CEFF00] border border-white/10 shadow-sm flex-shrink-0">
                     {t.artistCount} ART
                   </span>
                   {isSelected && (
