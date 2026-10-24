@@ -144,8 +144,31 @@ async function runResponsiveAudit() {
       assert(previewSubtitle.includes("Stories e Reels (1080 × 1920)"), "Subtítulo 9:16 limpo e correto ('Stories e Reels')");
       assert(!previewSubtitle.includes("Feed/Festify"), "Subtítulo livre do jargão 'Feed/Festify'");
 
-      // 6. Teste de Alternância de Formato para 1:1 Quadrado
-      const squareBtn = page.locator('button:has-text("Quadrado (1:1)")');
+      // 6. Verificação e Teste de Alternância de Formato para 1:1 Quadrado
+      const verticalBtn = page.getByRole("button", { name: /Vertical \(9:16\)/i });
+      const squareBtn = page.getByRole("button", { name: /Quadrado \(1:1\)/i });
+
+      const verticalBox = await verticalBtn.boundingBox();
+      const squareBox = await squareBtn.boundingBox();
+      assert(verticalBox !== null && squareBox !== null, "Botões de proporção (Vertical e Quadrado) renderizados");
+      if (verticalBox && squareBox) {
+        // Os botões devem estar lado a lado sem sobreposição horizontal
+        assert(
+          verticalBox.x + verticalBox.width <= squareBox.x + 1,
+          `Botões lado a lado sem sobreposição (${Math.round(verticalBox.x + verticalBox.width)}px <= ${Math.round(squareBox.x)}px)`
+        );
+
+        // Ícone do smartphone deve estar 100% contido dentro da caixa do botão vertical
+        const smartphoneIcon = verticalBtn.locator("svg");
+        const iconBox = await smartphoneIcon.boundingBox();
+        if (iconBox) {
+          assert(
+            iconBox.x >= verticalBox.x - 1,
+            `Ícone Smartphone contido dentro do botão vertical (${Math.round(iconBox.x)}px >= ${Math.round(verticalBox.x)}px)`
+          );
+        }
+      }
+
       await squareBtn.click();
       await page.waitForTimeout(400);
 

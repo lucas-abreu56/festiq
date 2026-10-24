@@ -262,49 +262,114 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
         </div>
       </div>
 
-      {/* 03 · PROPORÇÃO DO PÔSTER (Sem quebra de 'px' órfão no Mobile) */}
+      {/* 03 · PROPORÇÃO DO PÔSTER (Layout de Card Robusto contra Overflow no Mobile) */}
       <div className="space-y-2.5 pt-2 border-t border-[#262626]">
-        <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
-          03 · Proporção do Pôster
-        </span>
+        <div className="flex items-center justify-between">
+          <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
+            03 · Proporção do Pôster
+          </span>
+          <span className="text-[11px] font-mono text-[#737373] hidden sm:inline-block">
+            Formato de Exportação
+          </span>
+        </div>
 
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
           <button
             type="button"
+            aria-label="Vertical (9:16)"
             onClick={() => onAspectRatioChange("9:16")}
-            className={`flex items-center justify-center gap-2 sm:gap-2.5 py-3 px-2.5 sm:px-4 rounded-xl border transition-all active:scale-[0.97] ${
+            className={`flex flex-col items-start p-3 rounded-xl border transition-all active:scale-[0.98] relative overflow-hidden text-left ${
               aspectRatio === "9:16"
-                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_8px_20px_rgba(206,255,0,0.25)] font-black"
+                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_6px_20px_rgba(206,255,0,0.25)] font-black"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white hover:border-[#404040]"
             }`}
           >
-            <Smartphone className={`w-4 h-4 flex-shrink-0 ${aspectRatio === "9:16" ? "text-[#141414]" : "text-[#CEFF00]"}`} />
-            <div className="text-left">
-              <span className="block text-xs font-display font-bold uppercase tracking-wider whitespace-nowrap">
-                Vertical (9:16)
+            <div className="flex items-center justify-between w-full mb-1">
+              <div className="flex items-center gap-1.5">
+                <Smartphone
+                  className={`w-4 h-4 flex-shrink-0 ${
+                    aspectRatio === "9:16" ? "text-[#141414]" : "text-[#CEFF00]"
+                  }`}
+                />
+                <span className="text-xs font-display font-bold uppercase tracking-wider">
+                  Vertical
+                </span>
+              </div>
+              <span
+                className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                  aspectRatio === "9:16"
+                    ? "bg-black/15 text-[#141414]"
+                    : "bg-[#141414] text-[#CEFF00] border border-[#2B2B2B]"
+                }`}
+              >
+                9:16
               </span>
-              <span className={`block text-[10px] font-mono whitespace-nowrap ${aspectRatio === "9:16" ? "text-black/80 font-bold" : "text-[#8A8A8A]"}`}>
-                Stories e Reels · 1080×1920
+            </div>
+
+            <div className="w-full min-w-0">
+              <span
+                className={`block text-[11px] font-medium leading-tight ${
+                  aspectRatio === "9:16" ? "text-[#141414]/90 font-bold" : "text-[#D4D4D4]"
+                }`}
+              >
+                Stories e Reels
+              </span>
+              <span
+                className={`block text-[10px] font-mono tracking-tight pt-0.5 ${
+                  aspectRatio === "9:16" ? "text-[#141414]/70 font-semibold" : "text-[#737373]"
+                }`}
+              >
+                1080 × 1920
               </span>
             </div>
           </button>
 
           <button
             type="button"
+            aria-label="Quadrado (1:1)"
             onClick={() => onAspectRatioChange("1:1")}
-            className={`flex items-center justify-center gap-2 sm:gap-2.5 py-3 px-2.5 sm:px-4 rounded-xl border transition-all active:scale-[0.97] ${
+            className={`flex flex-col items-start p-3 rounded-xl border transition-all active:scale-[0.98] relative overflow-hidden text-left ${
               aspectRatio === "1:1"
-                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_8px_20px_rgba(206,255,0,0.25)] font-black"
+                ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_6px_20px_rgba(206,255,0,0.25)] font-black"
                 : "bg-[#1E1E1E] border-[#2B2B2B] text-[#A3A3A3] hover:text-white hover:border-[#404040]"
             }`}
           >
-            <Square className={`w-4 h-4 flex-shrink-0 ${aspectRatio === "1:1" ? "text-[#141414]" : "text-[#CEFF00]"}`} />
-            <div className="text-left">
-              <span className="block text-xs font-display font-bold uppercase tracking-wider whitespace-nowrap">
-                Quadrado (1:1)
+            <div className="flex items-center justify-between w-full mb-1">
+              <div className="flex items-center gap-1.5">
+                <Square
+                  className={`w-4 h-4 flex-shrink-0 ${
+                    aspectRatio === "1:1" ? "text-[#141414]" : "text-[#CEFF00]"
+                  }`}
+                />
+                <span className="text-xs font-display font-bold uppercase tracking-wider">
+                  Quadrado
+                </span>
+              </div>
+              <span
+                className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                  aspectRatio === "1:1"
+                    ? "bg-black/15 text-[#141414]"
+                    : "bg-[#141414] text-[#CEFF00] border border-[#2B2B2B]"
+                }`}
+              >
+                1:1
               </span>
-              <span className={`block text-[10px] font-mono whitespace-nowrap ${aspectRatio === "1:1" ? "text-black/80 font-bold" : "text-[#8A8A8A]"}`}>
-                Feed e Posts · 1080×1080
+            </div>
+
+            <div className="w-full min-w-0">
+              <span
+                className={`block text-[11px] font-medium leading-tight ${
+                  aspectRatio === "1:1" ? "text-[#141414]/90 font-bold" : "text-[#D4D4D4]"
+                }`}
+              >
+                Feed e Posts
+              </span>
+              <span
+                className={`block text-[10px] font-mono tracking-tight pt-0.5 ${
+                  aspectRatio === "1:1" ? "text-[#141414]/70 font-semibold" : "text-[#737373]"
+                }`}
+              >
+                1080 × 1080
               </span>
             </div>
           </button>
