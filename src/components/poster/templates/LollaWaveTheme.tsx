@@ -275,15 +275,15 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
       </div>
 
-      {/* 3. Corpo Principal do Lineup: Coluna Esquerda (38.4% Ciano) + Coluna Direita (61.6% Amarelo) */}
+      {/* 3. Corpo Principal do Lineup: Coluna Esquerda Fluida (45%) + Coluna Direita (58% com sobreposição na onda) */}
       <div
         className={`relative z-10 flex-1 w-full flex items-stretch overflow-hidden ${
-          isSquare ? "pt-1 pb-[2.5%]" : "pt-1 pb-[3.5%]"
+          isSquare ? "pt-1 pb-[2%]" : "pt-0.5 pb-[2.5%]"
         }`}
       >
-        {/* COLUNA ESQUERDA (38.4%): 10 Headliners com Cap-Height Uniforme, Grande Destaque e Zero Truncamento */}
-        <div className="w-[38.4%] flex flex-col justify-between text-right pl-4 pr-1.5 py-0.5">
-          {headliners.map((artist) => {
+        {/* COLUNA ESQUERDA (45%): 10 Headliners com Ritmo Coeso, Fontes Ampliadas e Avanço sobre a Onda */}
+        <div className="w-[45%] flex flex-col justify-between text-right pl-3 pr-1.5 py-0.5">
+          {headliners.map((artist, hIdx) => {
             const lines = formatHeadlinerLines(artist.name);
             const maxEffectiveLen = Math.max(
               ...lines.map(
@@ -291,17 +291,33 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
               )
             );
 
+            // Escala escalonada para os 10 headliners (Top 3 monumentais, intermediários encorpados)
+            const isTop3 = hIdx < 3;
+            const isMid4 = hIdx >= 3 && hIdx < 7;
+
             const sizeStyle = isSquare
+              ? isTop3
+                ? maxEffectiveLen > 15
+                  ? "clamp(16px, 3.4cqw, 20px)"
+                  : "clamp(18px, 4.0cqw, 23px)"
+                : isMid4
+                ? maxEffectiveLen > 15
+                  ? "clamp(14.5px, 3.0cqw, 18px)"
+                  : "clamp(16px, 3.5cqw, 20px)"
+                : maxEffectiveLen > 15
+                ? "clamp(13.5px, 2.8cqw, 16.5px)"
+                : "clamp(15px, 3.2cqw, 18.5px)"
+              : isTop3
               ? maxEffectiveLen > 15
-                ? "clamp(13.5px, 2.8cqw, 16px)"
-                : maxEffectiveLen > 12
-                ? "clamp(14.5px, 3.1cqw, 17.5px)"
-                : "clamp(16px, 3.5cqw, 19.5px)"
+                ? "clamp(14.5px, 4.0cqw, 18.5px)"
+                : "clamp(16.5px, 4.6cqw, 21.5px)"
+              : isMid4
+              ? maxEffectiveLen > 15
+                ? "clamp(13px, 3.6cqw, 16.5px)"
+                : "clamp(14.5px, 4.0cqw, 18.5px)"
               : maxEffectiveLen > 15
-                ? "clamp(12px, 3.4cqw, 14.5px)"
-                : maxEffectiveLen > 12
-                ? "clamp(13.2px, 3.7cqw, 16px)"
-                : "clamp(14.8px, 4.2cqw, 18px)";
+              ? "clamp(12px, 3.3cqw, 15px)"
+              : "clamp(13.5px, 3.7cqw, 17px)";
 
             return (
               <div
@@ -336,8 +352,8 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* COLUNA DIREITA (61.6%): 35 Artistas do Undercard em Fileiras Coesas, Nomes Maiores e Agrupados com Bullet */}
-        <div className="w-[61.6%] flex flex-col justify-between text-center pl-1 pr-2.5 py-0.5 overflow-hidden">
+        {/* COLUNA DIREITA (58%): 35 Artistas do Undercard em Fileiras Coesas sobre o Fundo Amarelo */}
+        <div className="w-[58%] -ml-1 flex flex-col justify-between text-center pl-1 pr-2.5 py-0.5 overflow-hidden">
           {undercardRows.map((row, rIdx) => {
             const isSoloRow = row.length === 1;
             const soloArtist = isSoloRow ? row[0] : null;
