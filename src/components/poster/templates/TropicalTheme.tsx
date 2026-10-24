@@ -1,6 +1,6 @@
 import React from "react";
 import { FestivalLineup } from "@/lib/lineup-engine";
-import { SpotifyArtist } from "@/lib/mock-artists";
+import { SpotifyArtist, MOCK_ARTISTS } from "@/lib/mock-artists";
 import {
   PLANETA_RAIL_LEFT_DATA_URI,
   PLANETA_RAIL_RIGHT_DATA_URI,
@@ -11,10 +11,30 @@ interface ThemeProps {
 }
 
 /**
- * Extrai a letra principal do festival para o emblema 3D no centro do globo:
- * - Se começar com "PLANETA " e tiver segunda palavra (ex: "PLANETA ATLÂNTIDA" -> "A", "PLANETA LUCAS" -> "L"),
- *   usa a inicial da segunda palavra.
- * - Caso contrário, usa a primeira letra alfanumérica do nome escolhido (ex: "FESTIQ STUDIO" -> "F", "MEUPALOOZA" -> "M").
+ * Raio Estilizado 3D do Planeta Atlântida
+ */
+function LightningBolt({
+  color = "#FF3B30",
+  className = "w-2.5 h-3.5",
+}: {
+  color?: string;
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 16 24"
+      className={`${className} flex-shrink-0 pointer-events-none select-none`}
+      fill={color}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <polygon points="10,0 0,14 7,14 4,24 16,9 9,9" />
+    </svg>
+  );
+}
+
+/**
+ * Extrai a letra principal do festival para o emblema 3D no centro do globo
  */
 function extractPlanetaLetter(title: string): string {
   const clean = (title || "FESTIQ").trim().toUpperCase();
@@ -36,8 +56,15 @@ function extractPlanetaLetter(title: string): string {
  * no cartaz oficial do Planeta Atlântida), mantendo todos os nomes 100% inteiros e sem cortes.
  */
 function stackPlanetaName(name: string, maxSingleChars: number): string[] {
-  const clean = name.trim();
-  if (clean.length <= maxSingleChars || !clean.includes(" ")) {
+  const clean = name.trim().toUpperCase();
+  if (clean.length <= maxSingleChars) {
+    return [clean];
+  }
+  if (!clean.includes(" ")) {
+    if (clean.length > 12) {
+      const mid = Math.ceil(clean.length / 2);
+      return [`${clean.slice(0, mid)}-`, clean.slice(mid)];
+    }
     return [clean];
   }
   const words = clean.split(/\s+/);
@@ -45,15 +72,8 @@ function stackPlanetaName(name: string, maxSingleChars: number): string[] {
     return [words[0], words[1]];
   }
 
-  // Se o limite for muito restrito (<= 8 caracteres, como nos 3 headliners da linha 1):
-  if (maxSingleChars <= 8 && words.length >= 3) {
-    if (words.length === 3) return words;
-    if (words.length === 4) return [words.slice(0, 2).join(" "), words.slice(2).join(" ")];
-  }
-
-  // Se o nome for longo (>= 20 caracteres e >= 4 palavras), quebra em 3 linhas
-  // balanceadas para manter cada linha < 12 caracteres, blindando contra cortes laterais
-  if (clean.length >= 20 && words.length >= 4) {
+  // Se o nome for longo (> 20 caracteres e >= 4 palavras), quebra em 3 linhas
+  if (clean.length > 20 && words.length >= 4) {
     const t1 = Math.round(words.length / 3);
     const t2 = Math.round((words.length * 2) / 3);
     const p1 = words.slice(0, t1).join(" ");
@@ -78,100 +98,49 @@ function stackPlanetaName(name: string, maxSingleChars: number): string[] {
   return [words.slice(0, bestIdx).join(" "), words.slice(bestIdx).join(" ")];
 }
 
+interface PlanetaRows {
+  row0: SpotifyArtist[]; // Linha 1: 3 Headliners (Vintage Culture, Ivete Sangalo, Matuê)
+  row1: SpotifyArtist[]; // Linha 2: 4 Co-Headliners (Jota Quest, Luan Santana, Ludmilla, Luísa Sonza)
+  row2: SpotifyArtist[]; // Linha 3: 3 Destaques (Jão, Dilsinho, Gloria Groove)
+  row3: SpotifyArtist[]; // Linha 4: 3 Destaques (Armandinho, Dubdogz, Lagum)
+  row4: SpotifyArtist[]; // Linha 5: 3 Undercard 1 (Poze do Rodo, Vitor Kley, Mochakk)
+  row5: SpotifyArtist[]; // Linha 6: 3 Undercard 2 (Reação em Cadeia, Matheus & Kauan, Gilsons)
+  row6: SpotifyArtist[]; // Linha 7: 3 Undercard 3 (Teto & Wiu, Charlie Brown Jr, Melim)
+  row7: SpotifyArtist[]; // Linha 8: 3 Undercard 4 (Jovem Dionisio, Comunidade Nin-Jitsu, Vera Loca)
+  row8: SpotifyArtist[]; // Linha 9: 3 Undercard 5 (Priscilla Alcantara, Zaka, Ariel B)
+  row9: SpotifyArtist[]; // Linha 10: 3 Undercard 6 (Hans Ancina, Guz Zanotto, Gabriel R)
+  row10: SpotifyArtist[]; // Linha 11: 3 Undercard 7 (Laypold, DJ Cabeção, Pedro Mueller)
+}
+
+function getSafeSlice(pool: SpotifyArtist[], start: number, count: number): SpotifyArtist[] {
+  if (pool.length === 0) return [];
+  const result: SpotifyArtist[] = [];
+  for (let i = 0; i < count; i++) {
+    const art = pool[(start + i) % pool.length];
+    if (art) result.push(art);
+  }
+  return result;
+}
+
 /**
- * Distribui os artistas do undercard em fileiras equilibradas de 3 artistas (ou 3 a 4 em 1:1)
- * e equaliza a soma de caracteres por fileira, evitando linhas isoladas com 1 artista
- * e garantindo que nenhum nome ultrapasse as palmeiras e raios laterais.
+ * Organiza exatamente 34 artistas nas 11 fileiras oficiais do Planeta Atlântida:
+ * 3 + 4 + 3 + 3 + 3 + 3 + 3 + 3 + 3 + 3 + 3 = 34 artistas
  */
-function buildPlanetaUndercardRows(
-  artists: SpotifyArtist[],
-  isSquare: boolean
-): SpotifyArtist[][] {
-  if (artists.length === 0) return [];
-
-  // Em 9:16 o espaço útil entre os rails é de ~220px (3 artistas por fileira).
-  // Em 1:1 a largura lógica é de 540px (+50% maior) com ~340px livres:
-  // 4 artistas por fileira garante largura folgada por artista (~85px) sem risco de corte lateral,
-  // enquanto reduz o undercard para 8 fileiras com proporção ideal.
-  const targetPerRow = isSquare ? 4 : 3;
-  const numRows = Math.max(1, Math.ceil(artists.length / targetPerRow));
-  const baseSize = Math.floor(artists.length / numRows);
-  const remainder = artists.length % numRows;
-
-  const rows: SpotifyArtist[][] = [];
-  let cursor = 0;
-  for (let r = 0; r < numRows; r++) {
-    const size = baseSize + (r < remainder ? 1 : 0);
-    rows.push(artists.slice(cursor, cursor + size));
-    cursor += size;
-  }
-
-  // Se a última fileira ficou isolada com 1 artista e a penúltima tem mais de 2, reequilibra
-  if (rows.length > 1 && rows[rows.length - 1].length < 2 && rows[rows.length - 2].length > 2) {
-    const moved = rows[rows.length - 2].pop();
-    if (moved) rows[rows.length - 1].unshift(moved);
-  }
-
-  const getRowWeight = (row: SpotifyArtist[]) =>
-    row.reduce((acc, a) => {
-      const lines = stackPlanetaName(a.name, 11);
-      return acc + Math.max(...lines.map((l) => l.length));
-    }, 0) + Math.max(0, row.length - 1) * 3;
-
-  // Equaliza a soma de caracteres entre fileiras do undercard
-  for (let iter = 0; iter < 25; iter++) {
-    let heaviestIdx = 0;
-    let lightestIdx = 0;
-    let maxW = -Infinity;
-    let minW = Infinity;
-
-    rows.forEach((row, idx) => {
-      const w = getRowWeight(row);
-      if (w > maxW) {
-        maxW = w;
-        heaviestIdx = idx;
-      }
-      if (w < minW) {
-        minW = w;
-        lightestIdx = idx;
-      }
-    });
-
-    if (maxW - minW <= 5 || heaviestIdx === lightestIdx) break;
-
-    const heavyRow = rows[heaviestIdx];
-    const lightRow = rows[lightestIdx];
-    const idealDiff = (maxW - minW) / 2;
-    let bestH = -1;
-    let bestL = -1;
-    let bestScore = Infinity;
-
-    for (let h = 0; h < heavyRow.length; h++) {
-      for (let l = 0; l < lightRow.length; l++) {
-        const delta =
-          Math.max(...stackPlanetaName(heavyRow[h].name, 11).map((x) => x.length)) -
-          Math.max(...stackPlanetaName(lightRow[l].name, 11).map((x) => x.length));
-        if (delta > 1) {
-          const score = Math.abs(delta - idealDiff);
-          if (score < bestScore) {
-            bestScore = score;
-            bestH = h;
-            bestL = l;
-          }
-        }
-      }
-    }
-
-    if (bestH !== -1 && bestL !== -1) {
-      const tmp = heavyRow[bestH];
-      heavyRow[bestH] = lightRow[bestL];
-      lightRow[bestL] = tmp;
-    } else {
-      break;
-    }
-  }
-
-  return rows;
+function buildPlanetaRows(allArtists: SpotifyArtist[]): PlanetaRows {
+  const pool = allArtists.length > 0 ? allArtists : MOCK_ARTISTS.slice(0, 34);
+  return {
+    row0: getSafeSlice(pool, 0, 3),
+    row1: getSafeSlice(pool, 3, 4),
+    row2: getSafeSlice(pool, 7, 3),
+    row3: getSafeSlice(pool, 10, 3),
+    row4: getSafeSlice(pool, 13, 3),
+    row5: getSafeSlice(pool, 16, 3),
+    row6: getSafeSlice(pool, 19, 3),
+    row7: getSafeSlice(pool, 22, 3),
+    row8: getSafeSlice(pool, 25, 3),
+    row9: getSafeSlice(pool, 28, 3),
+    row10: getSafeSlice(pool, 31, 3),
+  };
 }
 
 export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
@@ -186,33 +155,8 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           ...lineup.singleStageUndercard,
         ];
 
+  const rows = buildPlanetaRows(allArtists);
   const letter = extractPlanetaLetter(lineup.title);
-
-  // Estrutura fiel ao cartaz oficial do Planeta Atlântida:
-  // Linha 1: 3 Headliners principais separados por raios (⚡) e empilhados em 2 linhas
-  const row1Headliners = allArtists.slice(0, 3);
-  // Linhas de destaque (10 artistas após os 3 headliners):
-  // Em 9:16 (vertical): 5 fileiras de 2 artistas (blindagem contra as palmeiras laterais).
-  // Em 1:1 (quadrado): agrupa em 4 fileiras (2, 3, 2, 3) mantendo no máximo 3 artistas por fileira
-  // para garantir espaçamento generoso e zero corte lateral.
-  const featureRows = isSquare
-    ? [
-        allArtists.slice(3, 5),
-        allArtists.slice(5, 8),
-        allArtists.slice(8, 10),
-        allArtists.slice(10, 13),
-      ].filter((r) => r.length > 0)
-    : [
-        allArtists.slice(3, 5),
-        allArtists.slice(5, 7),
-        allArtists.slice(7, 9),
-        allArtists.slice(9, 11),
-        allArtists.slice(11, 13),
-      ].filter((r) => r.length > 0);
-  // Undercard: Demais artistas distribuídos em fileiras equalizadas de 4 (1:1) ou 3 (9:16) artistas
-  const undercardRows = buildPlanetaUndercardRows(allArtists.slice(13), isSquare);
-
-  const dotColors = ["text-[#0097A7]", "text-[#E64A19]", "text-[#00897B]"];
 
   const displayArcTitle =
     lineup.title.trim().toUpperCase() === "FESTIQ STUDIO"
@@ -225,10 +169,15 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
       style={{
         background:
           "linear-gradient(180deg, #F595B1 0%, #F69EAE 14%, #F6A6A5 28%, #F7B499 42%, #F8C08F 56%, #FAC881 70%, #FAD471 84%, #FCE063 100%)",
+        containerType: "inline-size",
       }}
     >
-      {/* 1. COLUNA ILUSTRADA ESQUERDA (Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas + Linha Preta Vertical) */}
-      <div className="relative h-full w-[18.5%] flex-shrink-0 overflow-hidden">
+      {/* 1. COLUNA ILUSTRADA ESQUERDA (Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas) */}
+      <div
+        className={`relative h-full flex-shrink-0 overflow-hidden ${
+          isSquare ? "w-[13%]" : "w-[13%]"
+        }`}
+      >
         <img
           src={PLANETA_RAIL_LEFT_DATA_URI}
           alt=""
@@ -237,20 +186,20 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
         />
       </div>
 
-      {/* 2. PALCO CENTRAL: Globo 3D com Letra Centralizada + Saba em Atlântida + Lineup Uniforme + Rodapé Oficial */}
+      {/* 2. PALCO CENTRAL: Globo 3D com Letra + 11 Fileiras (34 Artistas) + Rodapé Oficial */}
       <div
         className={`relative z-10 flex-1 h-full flex flex-col justify-between items-center text-center overflow-hidden ${
-          isSquare ? "px-2 py-1.5" : "px-3.5 py-2"
+          isSquare ? "px-2 py-1.5" : "px-1.5 py-1.5"
         }`}
       >
-        {/* TOPO: Globo Azul 3D + Letra Dourada Centralizada no Meio + "3 E 4 DE FEVEREIRO / NA SABA, EM ATLÂNTIDA" */}
+        {/* TOPO: Globo Azul 3D + Letra Dourada + "3 E 4 DE FEVEREIRO / NA SABA, EM ATLÂNTIDA" */}
         <div className="w-full flex flex-col items-center">
           <svg
             viewBox="0 0 280 172"
             className={
               isSquare
-                ? "w-[114px] h-auto -mb-1"
-                : "w-[150px] h-auto -mb-1"
+                ? "w-[124px] h-auto -mb-1"
+                : "w-[145px] h-auto -mb-1"
             }
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -337,7 +286,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
               fillOpacity="0.22"
             />
 
-            {/* Nome do Festival Arqueado na Fonte Geométrica Larga do Planeta */}
+            {/* Nome do Festival Arqueado na Fonte Geométrica do Planeta */}
             <text
               fill="#141414"
               stroke="#141414"
@@ -370,7 +319,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
               </textPath>
             </text>
 
-            {/* LETRA 3D DOURADA CENTRALIZADA EXATAMENTE NO MEIO DO GLOBO (cx=140, cy=104) NA FONTE DO PLANETA */}
+            {/* LETRA 3D DOURADA CENTRALIZADA EXATAMENTE NO MEIO DO GLOBO */}
             <g>
               <text
                 x="145"
@@ -462,18 +411,18 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             </g>
           </svg>
 
-          {/* Informações Clássicas do Planeta Atlântida Restauradas Abaixo do Globo */}
+          {/* Informações Clássicas do Planeta Atlântida Abaixo do Globo */}
           <div className="leading-none -mt-0.5">
             <p
               className={`font-sans font-black uppercase tracking-wider text-white drop-shadow-[0_1.2px_2px_rgba(0,0,0,0.35)] ${
-                isSquare ? "text-[9px]" : "text-[8.5px]"
+                isSquare ? "text-[9.2px]" : "text-[8.5px]"
               }`}
             >
               3 E 4 DE FEVEREIRO
             </p>
             <p
               className={`font-sans font-black uppercase tracking-wider text-white drop-shadow-[0_1.2px_2px_rgba(0,0,0,0.35)] mt-[1px] ${
-                isSquare ? "text-[7.5px]" : "text-[7.2px]"
+                isSquare ? "text-[7.8px]" : "text-[7.2px]"
               }`}
             >
               NA SABA, EM ATLÂNTIDA · {lineup.subtitle.split("·")[0].trim()}
@@ -481,26 +430,26 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
           </div>
         </div>
 
-        {/* 3. BLOCO DE LINEUP COM RITMO VERTICAL UNIFORME ENTRE TODAS AS FILEIRAS (Fiel ao Cartaz Oficial) */}
+        {/* 3. BLOCO DE LINEUP COM EXATAMENTE 34 ARTISTAS EM 11 FILEIRAS (Fiel ao Cartaz Oficial) */}
         <div
           className={`w-full flex-1 flex flex-col justify-between items-center text-center overflow-hidden ${
-            isSquare ? "py-1.5" : "py-2"
+            isSquare ? "py-1" : "py-1.5"
           }`}
         >
-          {/* LINHA 1: 3 Headliners Principais Lado a Lado Separados por Raios (⚡) */}
-          <div className="w-full flex items-center justify-center gap-1.5">
-            {row1Headliners.map((artist, idx) => {
-              const lines = stackPlanetaName(artist.name, 8);
+          {/* LINHA 1: 3 HEADLINERS PRINCIPAIS SEPARADOS POR RAIOS (⚡) E EMPILHADOS EM 2 LINHAS */}
+          <div className="w-full flex items-center justify-center gap-1.5 leading-none">
+            {rows.row0.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 8 : 7);
               return (
                 <React.Fragment key={artist.id}>
-                  <div className="text-center leading-none">
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
                     {lines.map((line, lIdx) => (
                       <span
                         key={lIdx}
-                        className="block font-sans font-black uppercase text-[#141414] whitespace-nowrap tracking-tight"
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
                         style={{
                           fontSize: isSquare
-                            ? "clamp(11px, 2.6cqw, 13.5px)"
+                            ? "clamp(12.5px, 2.6cqw, 15.5px)"
                             : "clamp(9.8px, 2.5cqw, 12.5px)",
                           lineHeight: "0.92",
                         }}
@@ -509,134 +458,377 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
                       </span>
                     ))}
                   </div>
-                  {idx < row1Headliners.length - 1 && (
-                    <svg
-                      viewBox="0 0 16 24"
-                      className="w-2.5 h-3.5 flex-shrink-0"
-                      fill={idx === 0 ? "#FF5722" : "#0097A7"}
-                    >
-                      <polygon points="10,0 0,14 7,14 4,24 16,9 9,9" />
-                    </svg>
+                  {idx < rows.row0.length - 1 && (
+                    <LightningBolt
+                      color={idx === 0 ? "#FF3B30" : "#00BCD4"}
+                      className={isSquare ? "w-3 h-4" : "w-2.5 h-3.5"}
+                    />
                   )}
                 </React.Fragment>
               );
             })}
           </div>
 
-          {/* LINHAS DE DESTAQUE: 5 duos (9:16) ou 3 fileiras (1:1) com separador • */}
-          {featureRows.map((row, dIdx) => (
-            <div
-              key={`feature-${dIdx}`}
-              className="w-full flex items-center justify-center gap-2 leading-none"
-            >
-              {row.map((artist, idx) => {
-                const lines = stackPlanetaName(artist.name, isSquare ? 10 : 11);
-                return (
-                  <React.Fragment key={artist.id}>
-                    <div className="inline-flex flex-col items-center text-center leading-none">
-                      {lines.map((line, lIdx) => (
-                        <span
-                          key={lIdx}
-                          className="font-sans font-black uppercase text-[#141414] whitespace-nowrap tracking-tight"
-                          style={{
-                            fontSize: isSquare
-                              ? dIdx < 1
-                                ? "clamp(10.5px, 2.3cqw, 13px)"
-                                : "clamp(9.8px, 2.1cqw, 12px)"
-                              : dIdx < 2
-                              ? "clamp(9.8px, 2.4cqw, 12.2px)"
-                              : "clamp(9.0px, 2.3cqw, 11.2px)",
-                            lineHeight: lines.length > 1 ? "0.90" : "1.0",
-                          }}
-                        >
-                          {line}
-                        </span>
-                      ))}
-                    </div>
-                    {idx < row.length - 1 && (
+          {/* LINHA 2: 4 CO-HEADLINERS (Separados por Pontos Coloridos) */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row1.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 9 : 7);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
                       <span
-                        className={`font-black text-[7.5px] leading-none flex-shrink-0 ${
-                          dotColors[dIdx % dotColors.length]
-                        }`}
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(10.2px, 2.1cqw, 12.5px)"
+                            : "clamp(8.0px, 2.0cqw, 9.8px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
                       >
-                        •
+                        {line}
                       </span>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-          ))}
+                    ))}
+                  </div>
+                  {idx < rows.row1.length - 1 && (
+                    <span
+                      className={`font-black text-[7px] leading-none flex-shrink-0 ${
+                        idx === 0 ? "text-[#00BCD4]" : idx === 1 ? "text-[#FF5722]" : "text-[#00BCD4]"
+                      }`}
+                    >
+                      •
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
 
-          {/* LINHAS DO UNDERCARD: Undercard Equalizado (4 artistas em 1:1, 3 artistas em 9:16) */}
-          {undercardRows.map((row, rIdx) => {
-            const fontSizeStyle = isSquare
-              ? "clamp(8.8px, 1.8cqw, 10.8px)"
-              : "clamp(8.5px, 2.1cqw, 10.5px)";
+          {/* LINHA 3: 3 DESTAQUES */}
+          <div className="w-full flex items-center justify-center gap-1.5 leading-none">
+            {rows.row2.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 12 : 9);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(11.2px, 2.3cqw, 13.8px)"
+                            : "clamp(8.8px, 2.2cqw, 11.0px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx < rows.row2.length - 1 && (
+                    <span
+                      className={`font-black text-[7px] leading-none flex-shrink-0 ${
+                        idx === 0 ? "text-[#FF5722]" : "text-[#00BCD4]"
+                      }`}
+                    >
+                      •
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
 
-            return (
-              <div
-                key={`under-${rIdx}`}
-                className="w-full flex items-center justify-center gap-x-1 leading-none"
-              >
-                {row.map((artist, aIdx) => {
-                  const lines = stackPlanetaName(artist.name, 10);
-                  return (
-                    <React.Fragment key={artist.id}>
-                      <div className="inline-flex flex-col items-center text-center leading-none">
-                        {lines.map((line, lIdx) => (
-                          <span
-                            key={lIdx}
-                            className="font-sans font-extrabold uppercase text-[#141414] whitespace-nowrap tracking-tight"
-                            style={{
-                              fontSize: fontSizeStyle,
-                              lineHeight: lines.length > 1 ? "0.90" : "1.0",
-                            }}
-                          >
-                            {line}
-                          </span>
-                        ))}
-                      </div>
-                      {aIdx < row.length - 1 && (
-                        <span
-                          className={`font-black text-[6.5px] leading-none flex-shrink-0 ${
-                            dotColors[(rIdx + aIdx) % dotColors.length]
-                          }`}
-                        >
-                          •
-                        </span>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-            );
-          })}
+          {/* LINHA 4: 3 DESTAQUES */}
+          <div className="w-full flex items-center justify-center gap-1.5 leading-none">
+            {rows.row3.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 12 : 9);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(11.0px, 2.3cqw, 13.5px)"
+                            : "clamp(8.8px, 2.2cqw, 11.0px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx < rows.row3.length - 1 && (
+                    <span className="font-black text-[7px] leading-none flex-shrink-0 text-[#00BCD4]">
+                      •
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 5: 3 ARTISTAS (com Raio e Ponto) */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row4.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 11 : 8);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(10.5px, 2.2cqw, 13.0px)"
+                            : "clamp(8.2px, 2.1cqw, 10.4px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx === 0 ? (
+                    <LightningBolt color="#FF3B30" className="w-2 h-3" />
+                  ) : idx < rows.row4.length - 1 ? (
+                    <span className="font-black text-[6.5px] leading-none flex-shrink-0 text-[#00BCD4]">
+                      •
+                    </span>
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 6: 3 ARTISTAS (com Raio e Ponto) */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row5.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 11 : 8);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(10.5px, 2.2cqw, 13.0px)"
+                            : "clamp(8.2px, 2.1cqw, 10.4px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx === 0 ? (
+                    <LightningBolt color="#00BCD4" className="w-2 h-3" />
+                  ) : idx < rows.row5.length - 1 ? (
+                    <span className="font-black text-[6.5px] leading-none flex-shrink-0 text-[#FF5722]">
+                      •
+                    </span>
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 7: 3 ARTISTAS */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row6.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 11 : 8);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(10.2px, 2.1cqw, 12.8px)"
+                            : "clamp(8.2px, 2.1cqw, 10.4px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx === 0 ? (
+                    <span className="font-black text-[6.5px] leading-none flex-shrink-0 text-[#FF5722]">
+                      •
+                    </span>
+                  ) : idx < rows.row6.length - 1 ? (
+                    <LightningBolt color="#FF3B30" className="w-2 h-3" />
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 8: 3 ARTISTAS */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row7.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 11 : 8);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(10.2px, 2.1cqw, 12.8px)"
+                            : "clamp(8.2px, 2.1cqw, 10.4px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx === 0 ? (
+                    <span className="font-black text-[6.5px] leading-none flex-shrink-0 text-[#00BCD4]">
+                      •
+                    </span>
+                  ) : idx < rows.row7.length - 1 ? (
+                    <LightningBolt color="#00BCD4" className="w-2 h-3" />
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 9: 3 ARTISTAS */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row8.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 11 : 8);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(9.8px, 2.0cqw, 12.2px)"
+                            : "clamp(7.8px, 2.0cqw, 9.8px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx === 0 ? (
+                    <LightningBolt color="#FF3B30" className="w-2 h-3" />
+                  ) : idx < rows.row8.length - 1 ? (
+                    <span className="font-black text-[6.5px] leading-none flex-shrink-0 text-[#00BCD4]">
+                      •
+                    </span>
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 10: 3 ARTISTAS */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row9.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 11 : 8);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(9.8px, 2.0cqw, 12.2px)"
+                            : "clamp(7.8px, 2.0cqw, 9.8px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx < rows.row9.length - 1 && (
+                    <span className="font-black text-[6.5px] leading-none flex-shrink-0 text-[#FF5722]">
+                      •
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {/* LINHA 11: 3 ARTISTAS */}
+          <div className="w-full flex items-center justify-center gap-1 leading-none">
+            {rows.row10.map((artist, idx) => {
+              const lines = stackPlanetaName(artist.name, isSquare ? 11 : 8);
+              return (
+                <React.Fragment key={artist.id}>
+                  <div className="inline-flex flex-col items-center justify-center text-center leading-none">
+                    {lines.map((line, lIdx) => (
+                      <span
+                        key={lIdx}
+                        className="font-sans font-black uppercase text-[#0E0E0E] whitespace-nowrap tracking-tight"
+                        style={{
+                          fontSize: isSquare
+                            ? "clamp(9.8px, 2.0cqw, 12.2px)"
+                            : "clamp(7.8px, 2.0cqw, 9.8px)",
+                          lineHeight: lines.length > 1 ? "0.92" : "1.0",
+                        }}
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                  {idx < rows.row10.length - 1 && (
+                    <span className="font-black text-[6.5px] leading-none flex-shrink-0 text-[#00BCD4]">
+                      •
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
 
-        {/* 4. RODAPÉ OFICIAL PLANETA ATLÂNTIDA RESTAURADO: Slogan + Site + Pílula Coral-Laranja */}
+        {/* 4. RODAPÉ OFICIAL PLANETA ATLÂNTIDA RESTAURADO: Linha Ciano + Slogan + Site + Pílula Vermelha */}
         <div className="w-full flex flex-col items-center text-center pt-0.5">
-          <div className="w-28 h-[1.5px] bg-[#0097A7] mb-0.5" />
+          <div className="w-28 h-[2px] bg-[#00D2ED] mb-0.5" />
 
           <p
             className={`font-sans font-black uppercase tracking-wider text-[#141414] leading-none ${
-              isSquare ? "text-[9.5px]" : "text-[9.2px]"
+              isSquare ? "text-[10px]" : "text-[9.2px]"
             }`}
           >
             O PLANETA VOLTA A GIRAR
           </p>
           <p className="font-sans font-bold text-[6.5px] uppercase tracking-widest text-[#141414]/80 mt-[1px]">
-            PLANETAFESTIQ.COM.BR
+            saiba mais em: PLANETAATLANTIDA.COM.BR
           </p>
 
           <div
-            className={`mt-0.5 px-3.5 rounded-full bg-[#F4511E] text-white flex items-center justify-center gap-2 font-sans font-black uppercase tracking-wider shadow-sm ${
-              isSquare
-                ? "py-0.5 text-[7px]"
-                : "py-1 text-[7.5px]"
+            className={`mt-0.5 px-3.5 rounded-full bg-[#E53935] text-white flex items-center justify-center gap-2 font-sans font-black uppercase tracking-wider shadow-sm ${
+              isSquare ? "py-0.5 text-[7px]" : "py-1 text-[7.5px]"
             }`}
           >
-            <span className="px-1 py-[1px] bg-[#D50000] rounded text-white">
+            <span className="px-1 py-[1px] bg-[#B71C1C] rounded text-white">
               FESTIQ
             </span>
             <span>SPOTIFY API</span>
@@ -646,8 +838,12 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
         </div>
       </div>
 
-      {/* 5. COLUNA ILUSTRADA DIREITA (Linha Preta Vertical + Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas) */}
-      <div className="relative h-full w-[18.5%] flex-shrink-0 overflow-hidden">
+      {/* 5. COLUNA ILUSTRADA DIREITA (Coqueiros, Globo, Raio 3D, Boca Pop-Art, Ondas) */}
+      <div
+        className={`relative h-full flex-shrink-0 overflow-hidden ${
+          isSquare ? "w-[13%]" : "w-[13%]"
+        }`}
+      >
         <img
           src={PLANETA_RAIL_RIGHT_DATA_URI}
           alt=""

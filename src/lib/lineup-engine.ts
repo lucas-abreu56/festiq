@@ -313,6 +313,8 @@ export function buildFestivalLineup({
         ? processed.slice(0, 24)
         : themeId === "floggnaw"
         ? processed.slice(0, 41)
+        : themeId === "tropical"
+        ? processed.slice(0, 34)
         : processed.slice(0, 45),
     singleStageHeadliners: [h1, h2, h3],
     singleStageSubHeadliners:
