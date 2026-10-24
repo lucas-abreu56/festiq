@@ -640,7 +640,7 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* LINHA 7: O CENTRO GRAVITACIONAL — HEADLINER SUPREMO #1 COM BORBOLETA AZUL MORPHO */}
+        {/* LINHA 7: O CENTRO GRAVITACIONAL · HEADLINER SUPREMO #1 COM BORBOLETA AZUL MORPHO */}
         <div className="w-full flex items-center justify-center leading-none my-0.5">
           {rows.headliner && (
             <div className="inline-flex items-center justify-center text-center leading-none">

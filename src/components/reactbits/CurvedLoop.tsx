@@ -23,11 +23,11 @@ export const CurvedLoop: React.FC<CurvedLoopProps> = ({
 
   return (
     <div
-      className={`w-full overflow-hidden select-none pointer-events-none py-3 sm:py-5 bg-[#0E0E0E] relative ${className}`}
+      className={`w-full overflow-hidden select-none pointer-events-none py-2 sm:py-4 bg-[#0E0E0E] relative ${className}`}
     >
       <svg
         viewBox="0 0 1440 220"
-        className="w-full h-28 sm:h-36 md:h-44 block"
+        className="w-full h-16 sm:h-28 md:h-36 block"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid slice"

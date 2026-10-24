@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://festiq.lucasschwingel.com"),
   title: "Festiq · Seu Spotify em cartaz de festival",
   description:
-    "Transforme seus 45 artistas mais ouvidos no Spotify em pôsteres de festival nos formatos vertical (9:16) e quadrado (1:1).",
+    "Transforme os artistas mais ouvidos do seu Spotify em cartazes de festival em alta resolução para Stories (9:16) e Feed (1:1).",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Festiq · Seu Spotify em cartaz de festival",
     description:
-      "Gere o pôster do seu festival com os seus 45 artistas mais ouvidos no Spotify em 5 temas visuais para Stories (9:16) e Feed (1:1).",
+      "Gere o pôster do seu festival com os artistas mais ouvidos do seu Spotify em temas visuais icônicos para Stories (9:16) e Feed (1:1).",
     url: "/",
     siteName: "Festiq Studio",
     locale: "pt_BR",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Festiq · Seu Spotify em cartaz de festival",
     description:
-      "Gere o pôster do seu festival com os seus 45 artistas mais ouvidos no Spotify em 5 temas visuais para Stories (9:16) e Feed (1:1).",
+      "Gere o pôster do seu festival com os artistas mais ouvidos do seu Spotify em temas visuais icônicos para Stories (9:16) e Feed (1:1).",
   },
 };
 

@@ -831,7 +831,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             <span className="px-1 py-[1px] bg-[#B71C1C] rounded text-white">
               FESTIQ
             </span>
-            <span>SPOTIFY API</span>
+            <span>LINEUP OFICIAL</span>
             <span>•</span>
             <span>{isSquare ? "1080×1080" : "1080×1920"}</span>
           </div>

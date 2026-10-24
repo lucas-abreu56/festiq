@@ -104,8 +104,8 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
           </span>
           <span className="text-[11px] font-mono text-[#CEFF00] font-bold">
             {aspectRatio === "9:16"
-              ? "Vertical · Stories/Reels (1080×1920)"
-              : "Quadrado · Feed/Festify (1080×1080)"}
+              ? "Vertical · Stories e Reels (1080×1920)"
+              : "Quadrado · Feed (1080×1080)"}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -219,7 +219,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
         <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
           Tema Visual do Festival
         </span>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-2.5">
           {THEMES.map((t) => {
             const isSelected = themeId === t.id;
             return (
@@ -253,7 +253,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
       {/* 4. Modo do Lineup & ReactBits OptionWheel */}
       <div className="space-y-2.5">
         <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
-          Algoritmo do Lineup
+          Critério do Lineup
         </span>
         <div className="grid grid-cols-3 gap-2">
           <button
@@ -312,7 +312,7 @@ export const CustomizerPanel: React.FC<CustomizerPanelProps> = ({
       {/* 5. Período das Estatísticas */}
       <div className="space-y-2">
         <span className="block text-xs font-mono uppercase tracking-wider text-[#A3A3A3] font-bold">
-          Período das Estatísticas (Spotify)
+          Período Musical (Spotify)
         </span>
         <div className="grid grid-cols-3 gap-2">
           <button

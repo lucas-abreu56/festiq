@@ -147,7 +147,7 @@ export default function AboutPage() {
             <div className="p-5 rounded-xl bg-[#181818] border border-[#282828] space-y-2">
               <h3 className="font-bold text-white text-sm">Posso usar o Festiq sem fazer login?</h3>
               <p className="text-xs text-[#A3A3A3] leading-relaxed">
-                Sim. Ao abrir o aplicativo sem conectar o Spotify, o Festiq ativa o Modo Demonstração com uma seleção curada de 45 artistas representativos para você explorar todos os temas, filtros e exportações livremente.
+                Sim. Ao abrir o aplicativo sem conectar o Spotify, o Festiq ativa o Modo Demonstração com uma seleção curada de artistas representativos para você explorar todos os temas, filtros e exportações livremente.
               </p>
             </div>
 

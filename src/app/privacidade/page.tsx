@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc pl-5 space-y-1 text-xs text-[#A3A3A3] leading-relaxed">
               <li>
-                <code className="text-[#CEFF00]">user-top-read</code>: leitura dos 45 artistas e músicas mais ouvidos nos períodos selecionados (4 semanas, 6 meses ou histórico completo) para compor a grade do cartaz.
+                <code className="text-[#CEFF00]">user-top-read</code>: leitura dos artistas e músicas mais ouvidos nos períodos selecionados (4 semanas, 6 meses ou histórico completo) para compor a grade do cartaz.
               </li>
               <li>
                 <code className="text-[#CEFF00]">user-read-private</code>: leitura do nome de exibição para sugerir o título comemorativo do evento.

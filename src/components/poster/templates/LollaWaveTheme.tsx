@@ -450,7 +450,7 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
             FESTIQ
           </span>
           <span className="px-1.5 py-[1px] rounded-sm bg-[#63CBD8] text-[#141414] font-black">
-            SPOTIFY API
+            LINEUP OFICIAL
           </span>
           <span className="text-white/60">
             {lineup.subtitle}

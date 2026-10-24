@@ -82,7 +82,7 @@ export const ExportBar: React.FC<ExportBarProps> = ({ festivalName, aspectRatio 
           <span className="text-[#F7F6EB] font-bold tracking-wide">{resolutionText}</span>
         </div>
         <span className="text-[10px] font-mono text-[#A3A3A3] uppercase tracking-wider">
-          PNG Alta Definição · 45 Artistas
+          PNG Alta Definição · Zero Compressão
         </span>
       </div>
 
