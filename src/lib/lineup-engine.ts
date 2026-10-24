@@ -308,10 +308,12 @@ export function buildFestivalLineup({
     timeRange,
     aspectRatio,
     days,
-    allArtists: processed.slice(0, 45),
+    allArtists: themeId === "festify" ? processed.slice(0, 24) : processed.slice(0, 45),
     singleStageHeadliners: [h1, h2, h3],
-    singleStageSubHeadliners: processed.slice(3, 11),
-    singleStageUndercard: processed.slice(11, 45),
+    singleStageSubHeadliners:
+      themeId === "festify" ? processed.slice(3, 6) : processed.slice(3, 11),
+    singleStageUndercard:
+      themeId === "festify" ? processed.slice(6, 24) : processed.slice(11, 45),
   };
 }
 

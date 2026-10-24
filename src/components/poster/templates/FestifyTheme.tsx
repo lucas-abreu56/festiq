@@ -49,105 +49,6 @@ function stackFestifyLines(name: string, maxSingleLineChars: number): string[] {
   return [words.slice(0, bestIdx).join(" "), words.slice(bestIdx).join(" ")];
 }
 
-function getEffectiveArtistWidth(artist: SpotifyArtist, maxSingleLineChars: number): number {
-  const lines = stackFestifyLines(artist.name, maxSingleLineChars);
-  return Math.max(...lines.map((l) => l.length));
-}
-
-/**
- * Divide os artistas do undercard em fileiras simétricas de 3 a 4 artistas (em vez de 5–6)
- * e equaliza a largura efetiva das fileiras, garantindo fontes 75% maiores (10.2px a 13.5px)
- * e eliminando vãos vazios no pôster.
- */
-function buildFestifyUndercardRows(
-  artists: SpotifyArtist[],
-  isSquare: boolean
-): SpotifyArtist[][] {
-  if (artists.length === 0) return [];
-
-  // Padrão de artistas por fileira:
-  // Em 9:16: 4 artistas por fileira (~10 fileiras para 39 artistas)
-  // Em 1:1: 5 artistas por fileira (~8 fileiras para 39 artistas), aproveitando os 540px de largura
-  // e reduzindo o consumo vertical para eliminar sobreposições de linhas.
-  const targetPerRow = isSquare ? 5 : 4;
-  const numRows = Math.max(1, Math.ceil(artists.length / targetPerRow));
-  const baseSize = Math.floor(artists.length / numRows);
-  const remainder = artists.length % numRows;
-
-  const rows: SpotifyArtist[][] = [];
-  let cursor = 0;
-  for (let i = 0; i < numRows; i++) {
-    const size = baseSize + (i < remainder ? 1 : 0);
-    rows.push(artists.slice(cursor, cursor + size));
-    cursor += size;
-  }
-
-  // Se a última fileira ficou com menos de 3 artistas e a penúltima tem 4, reequilibra
-  if (rows.length > 1 && rows[rows.length - 1].length < 3 && rows[rows.length - 2].length > 3) {
-    const moved = rows[rows.length - 2].pop();
-    if (moved) rows[rows.length - 1].unshift(moved);
-  }
-
-  const getRowWidth = (row: SpotifyArtist[]) =>
-    row.reduce((acc, a) => acc + getEffectiveArtistWidth(a, 12), 0) +
-    Math.max(0, row.length - 1) * 3;
-
-  // Equaliza a largura entre as fileiras trocando nomes longos por curtos quando necessário
-  for (let iter = 0; iter < 25; iter++) {
-    let heaviestIdx = 0;
-    let lightestIdx = 0;
-    let maxW = -Infinity;
-    let minW = Infinity;
-
-    rows.forEach((row, idx) => {
-      const w = getRowWidth(row);
-      if (w > maxW) {
-        maxW = w;
-        heaviestIdx = idx;
-      }
-      if (w < minW) {
-        minW = w;
-        lightestIdx = idx;
-      }
-    });
-
-    if (maxW - minW <= 5 || heaviestIdx === lightestIdx) break;
-
-    const heavyRow = rows[heaviestIdx];
-    const lightRow = rows[lightestIdx];
-    const idealDiff = (maxW - minW) / 2;
-    let bestH = -1;
-    let bestL = -1;
-    let bestScore = Infinity;
-
-    for (let h = 0; h < heavyRow.length; h++) {
-      for (let l = 0; l < lightRow.length; l++) {
-        const wH = getEffectiveArtistWidth(heavyRow[h], 12);
-        const wL = getEffectiveArtistWidth(lightRow[l], 12);
-        const delta = wH - wL;
-        if (delta > 1) {
-          const score = Math.abs(delta - idealDiff);
-          if (score < bestScore) {
-            bestScore = score;
-            bestH = h;
-            bestL = l;
-          }
-        }
-      }
-    }
-
-    if (bestH !== -1 && bestL !== -1) {
-      const tmp = heavyRow[bestH];
-      heavyRow[bestH] = lightRow[bestL];
-      lightRow[bestL] = tmp;
-    } else {
-      break;
-    }
-  }
-
-  return rows;
-}
-
 export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
   const isSquare = lineup.aspectRatio === "1:1";
 
@@ -160,16 +61,20 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
           ...lineup.singleStageUndercard,
         ];
 
-  // Estrutura fiel ao Festify (Forestfest 2019):
+  // Estrutura fiel ao cartaz original do Festify (24 artistas no total):
   // Linha 1: 1 Headliner Principal
   // Linha 2: 2 Co-Headliners
-  // Linha 3: 3 Sub-Headliners (sempre na mesma linha horizontal)
-  // Linhas 4..10/11: Demais 39 artistas em fileiras equalizadas de 5–6 artistas (1:1) ou 4–5 artistas (9:16)
-  const mainHeadliner = allArtists[0];
-  const row2CoHeadliners = allArtists.slice(1, 3);
-  const row3SubHeadliners = allArtists.slice(3, 6);
-  const undercardArtists = allArtists.slice(6);
-  const undercardRows = buildFestifyUndercardRows(undercardArtists, isSquare);
+  // Linha 3: 3 Sub-Headliners
+  // Linhas 4 a 6: 18 artistas no Undercard distribuídos em 3 colunas alinhadas sob cada sub-headliner (3 linhas com 1 par de artistas por coluna)
+  const festifyArtists = allArtists.slice(0, 24);
+  const mainHeadliner = festifyArtists[0];
+  const row2CoHeadliners = festifyArtists.slice(1, 3);
+  const row3SubHeadliners = festifyArtists.slice(3, 6);
+  const undercard = festifyArtists.slice(6, 24);
+
+  const col0 = undercard.slice(0, 6);
+  const col1 = undercard.slice(6, 12);
+  const col2 = undercard.slice(12, 18);
 
   const presenterLabel =
     lineup.mode === "genre"
@@ -291,20 +196,20 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* Nível 3: 3 Sub-Headliners SEMPRE em 1 Única Linha Horizontal (Empilhando Nomes Longos em 2 Linhas) */}
-        <div className="w-full max-w-[94%] flex items-center justify-between text-center px-1">
+        {/* Nível 3: 3 Sub-Headliners perfeitamente alinhados sobre suas 3 colunas */}
+        <div className="w-full max-w-[96%] flex items-center justify-between text-center px-1">
           {row3SubHeadliners.map((artist) => {
             const lines = stackFestifyLines(artist.name, 12);
             return (
-              <div key={artist.id} className="inline-flex flex-col items-center leading-none">
+              <div key={artist.id} className="w-[32%] flex flex-col items-center justify-center leading-none">
                 {lines.map((line, lIdx) => (
                   <span
                     key={lIdx}
-                    className="font-sans font-semibold uppercase text-[#0D0D0D] whitespace-nowrap"
+                    className="font-sans font-bold uppercase text-[#0D0D0D] whitespace-nowrap"
                     style={{
                       fontSize: isSquare
-                        ? "clamp(11.8px, 2.6cqw, 14.5px)"
-                        : "clamp(11px, 2.8cqw, 14.5px)",
+                        ? "clamp(13px, 3.0cqw, 16.5px)"
+                        : "clamp(11.5px, 3.0cqw, 15px)",
                       letterSpacing: "0.03em",
                       lineHeight: lines.length > 1 ? "0.88" : "1.0",
                     }}
@@ -317,42 +222,103 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
           })}
         </div>
 
-        {/* Fileiras do Undercard (Irmãs Diretas no Flexbox para Preencher Verticalmente até a Cabana sem Buracos) */}
-        {undercardRows.map((row, rIdx) => {
-          const isShorterRow = row.length <= 3;
-          const isMidRow = row.length === 4;
+        {/* Nível 4: 3 Linhas do Undercard (cada uma contendo 3 pares alinhados sob as 3 colunas) */}
+        {[0, 1, 2].map((rIdx) => {
+          const pair0 = col0.slice(rIdx * 2, rIdx * 2 + 2);
+          const pair1 = col1.slice(rIdx * 2, rIdx * 2 + 2);
+          const pair2 = col2.slice(rIdx * 2, rIdx * 2 + 2);
+
           return (
             <div
-              key={rIdx}
-              className={`w-full ${
-                isShorterRow ? "max-w-[85%]" : isMidRow ? "max-w-[92%]" : "max-w-[97%]"
-              } flex items-center justify-between text-center px-1`}
+              key={`undercard-row-${rIdx}`}
+              className="w-full max-w-[98%] flex items-center justify-between text-center px-1"
             >
-              {row.map((artist) => {
-                const lines = stackFestifyLines(artist.name, 11);
-                return (
-                  <div
-                    key={artist.id}
-                    className="inline-flex flex-col items-center justify-center text-center leading-none px-0.5"
-                  >
-                    {lines.map((line, lIdx) => (
-                      <span
-                        key={lIdx}
-                        className="font-sans font-semibold uppercase text-[#141414] whitespace-nowrap"
-                        style={{
-                          fontSize: isSquare
-                            ? "clamp(11px, 2.1cqw, 13.8px)"
-                            : "clamp(10.2px, 2.6cqw, 13.5px)",
-                          letterSpacing: "0.02em",
-                          lineHeight: lines.length > 1 ? "0.88" : "1.0",
-                        }}
-                      >
-                        {line}
-                      </span>
-                    ))}
-                  </div>
-                );
-              })}
+              {/* Coluna 1 */}
+              <div className="w-[32%] flex items-center justify-around px-0.5 leading-none">
+                {pair0.map((artist) => {
+                  const lines = stackFestifyLines(artist.name, 10);
+                  return (
+                    <div
+                      key={artist.id}
+                      className="inline-flex flex-col items-center justify-center text-center px-0.5 leading-none"
+                    >
+                      {lines.map((line, lIdx) => (
+                        <span
+                          key={lIdx}
+                          className="font-sans font-semibold uppercase text-[#141414] whitespace-nowrap"
+                          style={{
+                            fontSize: isSquare
+                              ? "clamp(9.8px, 2.1cqw, 12.5px)"
+                              : "clamp(8.5px, 2.2cqw, 10.8px)",
+                            letterSpacing: "0.02em",
+                            lineHeight: lines.length > 1 ? "0.88" : "1.0",
+                          }}
+                        >
+                          {line}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Coluna 2 */}
+              <div className="w-[32%] flex items-center justify-around px-0.5 leading-none">
+                {pair1.map((artist) => {
+                  const lines = stackFestifyLines(artist.name, 10);
+                  return (
+                    <div
+                      key={artist.id}
+                      className="inline-flex flex-col items-center justify-center text-center px-0.5 leading-none"
+                    >
+                      {lines.map((line, lIdx) => (
+                        <span
+                          key={lIdx}
+                          className="font-sans font-semibold uppercase text-[#141414] whitespace-nowrap"
+                          style={{
+                            fontSize: isSquare
+                              ? "clamp(9.8px, 2.1cqw, 12.5px)"
+                              : "clamp(8.5px, 2.2cqw, 10.8px)",
+                            letterSpacing: "0.02em",
+                            lineHeight: lines.length > 1 ? "0.88" : "1.0",
+                          }}
+                        >
+                          {line}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Coluna 3 */}
+              <div className="w-[32%] flex items-center justify-around px-0.5 leading-none">
+                {pair2.map((artist) => {
+                  const lines = stackFestifyLines(artist.name, 10);
+                  return (
+                    <div
+                      key={artist.id}
+                      className="inline-flex flex-col items-center justify-center text-center px-0.5 leading-none"
+                    >
+                      {lines.map((line, lIdx) => (
+                        <span
+                          key={lIdx}
+                          className="font-sans font-semibold uppercase text-[#141414] whitespace-nowrap"
+                          style={{
+                            fontSize: isSquare
+                              ? "clamp(9.8px, 2.1cqw, 12.5px)"
+                              : "clamp(8.5px, 2.2cqw, 10.8px)",
+                            letterSpacing: "0.02em",
+                            lineHeight: lines.length > 1 ? "0.88" : "1.0",
+                          }}
+                        >
+                          {line}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}
