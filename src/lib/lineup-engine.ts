@@ -308,7 +308,12 @@ export function buildFestivalLineup({
     timeRange,
     aspectRatio,
     days,
-    allArtists: themeId === "festify" ? processed.slice(0, 24) : processed.slice(0, 45),
+    allArtists:
+      themeId === "festify"
+        ? processed.slice(0, 24)
+        : themeId === "floggnaw"
+        ? processed.slice(0, 41)
+        : processed.slice(0, 45),
     singleStageHeadliners: [h1, h2, h3],
     singleStageSubHeadliners:
       themeId === "festify" ? processed.slice(3, 6) : processed.slice(3, 11),
