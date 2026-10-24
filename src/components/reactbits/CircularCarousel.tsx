@@ -50,7 +50,7 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
     const updateRadius = () => {
       if (!containerRef.current) return;
       const width = containerRef.current.clientWidth;
-      const computed = Math.min(Math.max(width * 0.34, 130), 340);
+      const computed = Math.min(Math.max(width * 0.32, 110), 340);
       setRadiusX(computed);
     };
     updateRadius();
@@ -80,7 +80,7 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[340px] sm:h-[390px] flex items-center justify-center select-none overflow-hidden"
+      className="relative w-full h-[360px] sm:h-[400px] flex items-center justify-center select-none overflow-hidden"
     >
       {/* Anel Guia de Órbita em Perspectiva */}
       <div
@@ -100,7 +100,7 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
           TOP {count}
         </span>
         <span className="font-mono text-[8px] text-[#F7F6EB]/80 uppercase tracking-widest">
-          FOTOS REAIS
+          NO PALCO
         </span>
       </div>
 
@@ -145,7 +145,7 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
             >
               {/* Foto Quadrada Grande do Artista */}
               <div
-                className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-none overflow-hidden border-2 transition-colors duration-200 bg-[#0E0E0E] relative shadow-[0_14px_30px_rgba(0,0,0,0.85)] ${
+                className={`w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-none overflow-hidden border-2 transition-colors duration-200 bg-[#0E0E0E] relative shadow-[0_14px_30px_rgba(0,0,0,0.85)] ${
                   isCurrentHovered
                     ? "border-[#CEFF00] shadow-[0_0_25px_rgba(206,255,0,0.45)]"
                     : "border-[#F7F6EB]/35"
@@ -166,13 +166,13 @@ export const CircularCarousel: React.FC<CircularCarouselProps> = ({ artists }) =
 
               {/* Plaqueta Retangular com o Nome do Artista */}
               <div
-                className={`w-24 sm:w-28 md:w-32 px-2 py-1 border-x-2 border-b-2 transition-colors duration-200 text-center ${
+                className={`w-20 sm:w-28 md:w-32 px-1.5 sm:px-2 py-1 border-x-2 border-b-2 transition-colors duration-200 text-center ${
                   isCurrentHovered
                     ? "bg-[#CEFF00] border-[#CEFF00] text-[#141414]"
                     : "bg-[#141414] border-[#F7F6EB]/35 text-[#F7F6EB]"
                 }`}
               >
-                <span className="block text-[9px] sm:text-[10px] font-display font-black uppercase tracking-wider truncate">
+                <span className="block text-[8.5px] sm:text-[10px] font-display font-black uppercase tracking-wider truncate">
                   {artist.name}
                 </span>
               </div>

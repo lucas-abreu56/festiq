@@ -134,10 +134,6 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1E1E1E] border border-[#282828] rounded-full text-[11px] font-mono text-[#A3A3A3]">
-                  <Radio className="w-3 h-3 text-[#CEFF00] animate-pulse" />
-                  Modo Demonstração
-                </span>
                 <a
                   href="/api/auth/login"
                   className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 bg-[#CEFF00] hover:bg-[#b8e600] text-[#141414] font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all shadow-[0_6px_18px_rgba(206,255,0,0.25)] active:scale-[0.97] whitespace-nowrap"
@@ -177,7 +173,7 @@ export default function HomePage() {
               </span>
             </div>
             <span className="text-[10px] sm:text-[11px] font-mono text-[#FF3EBA] font-bold">
-              Órbita 3D Interativa · Toque ou passe o mouse para inspecionar
+              Toque ou passe o mouse para destacar
             </span>
           </div>
           <CircularCarousel artists={lineup.allArtists} />
@@ -186,11 +182,7 @@ export default function HomePage() {
         {/* Layout do Estúdio: Palco de Preview à Esquerda e Painel de Mixagem à Direita */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           {/* Palco do Pôster */}
-          <div
-            className={`flex flex-col items-center justify-center lg:sticky lg:top-24 ${
-              aspectRatio === "1:1" ? "lg:col-span-6" : "lg:col-span-5"
-            }`}
-          >
+          <div className="flex flex-col items-center justify-center lg:sticky lg:top-24 lg:col-span-5">
             <div className="w-full flex justify-center py-2 relative">
               <PosterCanvas lineup={lineup} />
             </div>
@@ -206,11 +198,7 @@ export default function HomePage() {
           </div>
 
           {/* Painel de Controles & Exportação */}
-          <div
-            className={`flex flex-col gap-6 w-full ${
-              aspectRatio === "1:1" ? "lg:col-span-6" : "lg:col-span-7"
-            }`}
-          >
+          <div className="flex flex-col gap-6 w-full lg:col-span-7">
             {/* Painel Customizer */}
             <CustomizerPanel
               festivalName={festivalName}
@@ -230,7 +218,11 @@ export default function HomePage() {
             />
 
             {/* Barra de Ação de Download */}
-            <ExportBar festivalName={activeFestivalName} aspectRatio={aspectRatio} />
+            <ExportBar
+              festivalName={activeFestivalName}
+              aspectRatio={aspectRatio}
+              artistCount={lineup.allArtists.length}
+            />
           </div>
         </div>
       </main>
@@ -244,7 +236,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <span className="font-frama font-black italic text-[#F7F6EB] text-sm">FESTIQ STUDIO</span>
             <span className="hidden sm:inline">·</span>
-            <p>Criador de lineups e pôsteres comemorativos integrados à Spotify Web API.</p>
+            <p>Seus artistas mais ouvidos transformados em cartazes de festival.</p>
           </div>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2.5 sm:gap-4 text-[11px]">
             <Link
@@ -276,10 +268,6 @@ export default function HomePage() {
             >
               GitHub
             </a>
-            <span>•</span>
-            <span className="px-2 py-0.5 rounded bg-[#1E1E1E] text-[#CEFF00] font-bold">
-              9:16 & 1:1 HQ
-            </span>
           </div>
         </div>
       </footer>

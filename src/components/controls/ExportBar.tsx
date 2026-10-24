@@ -8,9 +8,10 @@ import { PosterAspectRatio } from "@/lib/lineup-engine";
 interface ExportBarProps {
   festivalName: string;
   aspectRatio: PosterAspectRatio;
+  artistCount?: number;
 }
 
-export const ExportBar: React.FC<ExportBarProps> = ({ festivalName, aspectRatio }) => {
+export const ExportBar: React.FC<ExportBarProps> = ({ festivalName, aspectRatio, artistCount }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -82,7 +83,7 @@ export const ExportBar: React.FC<ExportBarProps> = ({ festivalName, aspectRatio 
           <span className="text-[#F7F6EB] font-bold tracking-wide">{resolutionText}</span>
         </div>
         <span className="text-[10px] font-mono text-[#A3A3A3] uppercase tracking-wider">
-          PNG Alta Definição · Zero Compressão
+          PNG Alta Definição · {artistCount ? `${artistCount} Artistas` : "Zero Compressão"}
         </span>
       </div>
 
