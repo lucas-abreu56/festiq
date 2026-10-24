@@ -26,8 +26,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     <div className="w-full relative py-2">
       <div
         ref={containerRef}
-        className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x"
-        style={{ scrollbarWidth: "none" }}
+        className="flex flex-wrap items-center gap-2"
       >
         {options.map((option) => {
           const isSelected = selected.toLowerCase() === option.toLowerCase();
@@ -37,12 +36,12 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
               key={option}
               type="button"
               onClick={() => onSelect(option)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`snap-center flex-shrink-0 px-4 py-2 rounded-full font-mono text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className={`px-3 py-1.5 rounded-full font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${
                 isSelected
-                  ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_0_15px_rgba(206,255,0,0.4)]"
-                  : "bg-[#1A1A1A] text-brand-muted border-[#282828] hover:border-[#F7F6EB]/40 hover:text-white"
+                  ? "bg-[#CEFF00] text-[#141414] border-[#CEFF00] shadow-[0_0_12px_rgba(206,255,0,0.35)]"
+                  : "bg-[#1E1E1E] text-[#A3A3A3] border-[#2B2B2B] hover:border-[#CEFF00]/60 hover:text-white"
               }`}
             >
               {option}
