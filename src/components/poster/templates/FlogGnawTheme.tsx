@@ -916,11 +916,11 @@ export const FlogGnawTheme: React.FC<ThemeProps> = ({ lineup }) => {
           />
         </svg>
 
-        {/* Rodapé com Site Oficial e Badge Festiq */}
-        <div className="w-full bg-[#143D1F] pb-1.5 pt-0.5 px-4 flex items-center justify-between text-[7px] font-mono text-white/90 uppercase tracking-widest">
-          <span className="font-bold text-[#86EFAC]">FESTIQ · CAMP FLOG GNAW TRIBUTE</span>
-          <span className="font-black text-white">WWW.CAMPFLOGGNAW.COM</span>
-          <span className="font-bold text-[#FDE047]">{isSquare ? "1080×1080" : "1080×1920"}</span>
+        {/* Rodapé Oficial Festiq Carnival */}
+        <div className="w-full bg-[#143D1F] pb-1.5 pt-0.5 px-4 flex items-center justify-between text-[7.5px] font-mono text-white/90 uppercase tracking-widest">
+          <span className="font-bold text-[#86EFAC]">FESTIQ CARNIVAL</span>
+          <span className="font-black text-white">LINEUP OFICIAL</span>
+          <span className="font-bold text-[#FDE047]">{allArtists.length} ARTISTAS</span>
         </div>
       </div>
     </div>

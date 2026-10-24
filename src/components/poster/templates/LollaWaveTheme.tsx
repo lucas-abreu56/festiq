@@ -457,8 +457,6 @@ export const LollaWaveTheme: React.FC<ThemeProps> = ({ lineup }) => {
           </span>
         </div>
         <div className="text-right text-white/75 font-bold tracking-wider">
-          <span>{isSquare ? "1080 × 1080 PX" : "1080 × 1920 PX"}</span>
-          <span className="mx-1 text-[#E2F018]">•</span>
           <span>{allArtists.length} ARTISTAS</span>
         </div>
       </div>

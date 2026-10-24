@@ -820,7 +820,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             O PLANETA VOLTA A GIRAR
           </p>
           <p className="font-sans font-bold text-[6.5px] uppercase tracking-widest text-[#141414]/80 mt-[1px]">
-            saiba mais em: PLANETAATLANTIDA.COM.BR
+            FESTIQ STUDIO · EDIÇÃO ESPECIAL DE VERÃO
           </p>
 
           <div
@@ -833,7 +833,7 @@ export const TropicalTheme: React.FC<ThemeProps> = ({ lineup }) => {
             </span>
             <span>LINEUP OFICIAL</span>
             <span>•</span>
-            <span>{isSquare ? "1080×1080" : "1080×1920"}</span>
+            <span>{allArtists.length} ARTISTAS</span>
           </div>
         </div>
       </div>

@@ -545,10 +545,10 @@ export const FestifyTheme: React.FC<ThemeProps> = ({ lineup }) => {
           </span>
           <span className="absolute right-8 font-sans font-bold text-[7.5px] uppercase tracking-widest text-black/25">
             {lineup.timeRange === "short_term"
-              ? "LAST MONTH"
+              ? "4 SEMANAS"
               : lineup.timeRange === "medium_term"
-              ? "6 MONTHS"
-              : "ALL TIME"}
+              ? "6 MESES"
+              : "TODO O TEMPO"}
           </span>
         </div>
       </div>
