@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCodeForTokens } from "@/lib/spotify-auth";
+import { exchangeCodeForTokens, getAppBaseUrl } from "@/lib/spotify-auth";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -7,11 +9,13 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000";
+  const baseUrl = getAppBaseUrl(request.nextUrl.origin);
 
   if (error || !code) {
     console.error("Spotify Auth error ou ausência de code:", error);
-    return NextResponse.redirect(`${baseUrl}?auth_error=${encodeURIComponent(error || "cancelado")}`);
+    const errRes = NextResponse.redirect(`${baseUrl}?auth_error=${encodeURIComponent(error || "cancelado")}`);
+    errRes.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    return errRes;
   }
 
   const verifier = request.cookies.get("spotify_verifier")?.value;
@@ -19,12 +23,15 @@ export async function GET(request: NextRequest) {
 
   if (!verifier || !state || state !== storedState) {
     console.error("Mismatch de verifier ou state");
-    return NextResponse.redirect(`${baseUrl}?auth_error=state_mismatch`);
+    const mismatchRes = NextResponse.redirect(`${baseUrl}?auth_error=state_mismatch`);
+    mismatchRes.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    return mismatchRes;
   }
 
   try {
-    const tokens = await exchangeCodeForTokens(code, verifier);
+    const tokens = await exchangeCodeForTokens(code, verifier, request.nextUrl.origin);
     const response = NextResponse.redirect(`${baseUrl}?connected=true`);
+    response.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
 
     // Armazena access_token e refresh_token em cookies protegidos
     response.cookies.set("spotify_access_token", tokens.access_token, {
@@ -52,6 +59,8 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (err) {
     console.error("Falha ao obter tokens:", err);
-    return NextResponse.redirect(`${baseUrl}?auth_error=token_exchange_failed`);
+    const failRes = NextResponse.redirect(`${baseUrl}?auth_error=token_exchange_failed`);
+    failRes.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    return failRes;
   }
 }

@@ -1,11 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAppBaseUrl } from "@/lib/spotify-auth";
 
-export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000";
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const baseUrl = getAppBaseUrl(request.nextUrl.origin);
   const response = NextResponse.redirect(baseUrl);
+  response.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
 
   response.cookies.delete("spotify_access_token");
   response.cookies.delete("spotify_refresh_token");
+  response.cookies.delete("spotify_verifier");
+  response.cookies.delete("spotify_auth_state");
 
   return response;
 }
