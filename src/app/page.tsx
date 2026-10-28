@@ -15,7 +15,16 @@ import { CustomizerPanel } from "@/components/controls/CustomizerPanel";
 import { ExportBar } from "@/components/controls/ExportBar";
 import { CurvedLoop } from "@/components/reactbits/CurvedLoop";
 import { CircularCarousel } from "@/components/reactbits/CircularCarousel";
-import { Music, LogOut, CheckCircle, Disc3, Radio, Sparkles } from "lucide-react";
+import {
+  Music,
+  LogOut,
+  CheckCircle,
+  Disc3,
+  Sparkles,
+  RefreshCw,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 
 export default function HomePage() {
   const [themeId, setThemeId] = useState<FestivalThemeId>("lolla");
@@ -32,22 +41,50 @@ export default function HomePage() {
   const [userName, setUserName] = useState<string>("");
   const [spotifyArtists, setSpotifyArtists] = useState<SpotifyArtist[]>([]);
   const [, setIsLoadingData] = useState<boolean>(false);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
 
   // Consulta de artistas na API do Spotify (sem sobrescrever o nome padrão FESTIQ STUDIO)
   const fetchSpotifyData = useCallback(async (range: TimeRange) => {
     setIsLoadingData(true);
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
+    const justConnected = params?.get("connected") === "true";
+    const authError = params?.get("auth_error");
+
+    if (typeof window !== "undefined" && (justConnected || authError)) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    if (authError) {
+      setAuthNotice(
+        "Não foi possível concluir a autorização com o Spotify. Tente conectar novamente ou escolha outra conta."
+      );
+    }
+
     try {
-      const res = await fetch(`/api/spotify/top-artists?time_range=${range}`);
+      const res = await fetch(`/api/spotify/top-artists?time_range=${range}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
 
-      if (data.authenticated && data.artists && data.artists.length > 0) {
+      if (data.authenticated) {
         setIsAuthenticated(true);
-        setSpotifyArtists(data.artists);
-        if (data.userName) {
-          setUserName(data.userName);
-        }
+        setSpotifyArtists(Array.isArray(data.artists) ? data.artists : []);
+        setUserName(data.userName || "Conectado");
+        setAuthNotice(null);
       } else {
         setIsAuthenticated(false);
+        setSpotifyArtists([]);
+
+        if (data.errorCode === "SPOTIFY_USER_NOT_ALLOWED") {
+          setAuthNotice(
+            "A sua conta do Spotify conectou, mas o aplicativo ainda está em Modo de Desenvolvimento na Spotify API. Nesse modo, o Spotify libera os artistas apenas para e-mails cadastrados na aba User Management do painel developer.spotify.com/dashboard (ou após aprovação do Extended Quota Mode)."
+          );
+        } else if (justConnected && data.message) {
+          setAuthNotice(data.message);
+        }
       }
     } catch (err) {
       console.warn("Utilizando Modo Demo offline:", err);
@@ -119,11 +156,20 @@ export default function HomePage() {
             </Link>
 
             {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1E1E1E] border border-[#CEFF00]/50 rounded-full text-xs font-mono text-[#CEFF00] font-bold">
-                  <CheckCircle className="w-3.5 h-3.5 text-[#CEFF00]" />
-                  Spotify: {userName || "Conectado"}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-[#1E1E1E] border border-[#CEFF00]/50 rounded-full text-[11px] sm:text-xs font-mono text-[#CEFF00] font-bold whitespace-nowrap">
+                  <CheckCircle className="w-3.5 h-3.5 text-[#CEFF00] flex-shrink-0" />
+                  <span className="hidden sm:inline">Spotify:</span>
+                  <span>{userName || "Conectado"}</span>
                 </span>
+                <a
+                  href="/api/auth/login"
+                  className="p-2 sm:px-2.5 sm:py-1.5 text-[#A3A3A3] hover:text-[#CEFF00] rounded-xl hover:bg-[#1E1E1E] border border-transparent hover:border-[#282828] transition-colors text-xs font-mono flex items-center gap-1.5 whitespace-nowrap"
+                  title="Conectar outra conta do Spotify"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="hidden md:inline">Trocar conta</span>
+                </a>
                 <a
                   href="/api/auth/logout"
                   className="p-2 text-[#A3A3A3] hover:text-white rounded-xl hover:bg-[#1E1E1E] border border-transparent hover:border-[#282828] transition-colors text-xs font-mono flex items-center gap-1"
@@ -154,6 +200,36 @@ export default function HomePage() {
 
       {/* 3. Conteúdo Principal · Console de Criação & Palco */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
+        {authNotice && (
+          <div
+            role="alert"
+            className="mb-6 p-4 rounded-2xl bg-[#1E1E1E] border border-[#FF3EBA]/60 text-[#F7F6EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-[#FF3EBA] flex-shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm font-mono leading-relaxed break-words text-[#F7F6EB]">
+                {authNotice}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+              <a
+                href="/api/auth/login"
+                className="px-3 py-1.5 rounded-lg bg-[#CEFF00] hover:bg-[#b8e600] text-[#141414] font-display font-black text-[11px] uppercase tracking-wider transition-colors whitespace-nowrap"
+              >
+                Trocar Conta
+              </a>
+              <button
+                type="button"
+                onClick={() => setAuthNotice(null)}
+                aria-label="Fechar aviso"
+                className="p-1.5 rounded-lg text-[#A3A3A3] hover:text-white hover:bg-[#282828] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8 max-w-3xl">
           <h1 className="text-3xl sm:text-5xl font-frama font-black italic tracking-tight text-[#F7F6EB] uppercase leading-none">
             Crie seu festival dos sonhos a partir da sua música.
