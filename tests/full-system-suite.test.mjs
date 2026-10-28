@@ -477,6 +477,165 @@ async function runFullSuite() {
     await newPosterContext.close();
 
     // =========================================================================
+    // PILAR 5: CONEXÃO SPOTIFY MULTI-USUÁRIO, SHOW_DIALOG E DIAGNÓSTICO 403
+    // =========================================================================
+    console.log("\n-----------------------------------------------------------------");
+    console.log(" PILAR 5: TESTANDO CONEXÃO MULTI-USUÁRIO, OAUTH E BANNER 403");
+    console.log("-----------------------------------------------------------------");
+
+    // 5.1 Verifica redirecionamento de /api/auth/login (show_dialog=true + no-store)
+    const loginHeaders = await new Promise((resolve, reject) => {
+      http
+        .get(`${baseUrl}/api/auth/login`, (res) => {
+          resolve({
+            statusCode: res.statusCode,
+            location: res.headers.location || "",
+            cacheControl: res.headers["cache-control"] || "",
+          });
+        })
+        .on("error", reject);
+    });
+
+    if (
+      !loginHeaders.location.includes("accounts.spotify.com/authorize") ||
+      !loginHeaders.location.includes("show_dialog=true") ||
+      !loginHeaders.cacheControl.includes("no-store")
+    ) {
+      throw new Error(
+        `Rota /api/auth/login inválida: location=${loginHeaders.location}, cache-control=${loginHeaders.cacheControl}`
+      );
+    }
+    console.log("✓ Rota /api/auth/login validada com show_dialog=true e Cache-Control no-store.");
+    testStats.totalAssertions++;
+
+    // 5.2 Testa isolamento entre múltiplos usuários (Usuária Mariana vs Usuário Rafael)
+    const userAContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const userAPage = await userAContext.newPage();
+    await userAPage.route("**/api/spotify/top-artists*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          authenticated: true,
+          userName: "Mariana",
+          artists: [
+            { id: "m1", name: "Liniker", genres: ["mpb"], popularity: 82, images: [] },
+            { id: "m2", name: "BaianaSystem", genres: ["mpb", "rock"], popularity: 80, images: [] },
+            { id: "m3", name: "Djavan", genres: ["mpb"], popularity: 85, images: [] },
+          ],
+        }),
+      });
+    });
+
+    await userAPage.goto(`${baseUrl}/?connected=true`, { waitUntil: "domcontentloaded" });
+    await userAPage.waitForSelector("#festiq-poster-preview");
+    await userAPage.waitForTimeout(400);
+
+    const userACheck = await userAPage.evaluate(() => {
+      const headerText = document.querySelector("header")?.textContent || "";
+      const posterText = document.querySelector("#festiq-poster-preview")?.textContent?.toUpperCase() || "";
+      return {
+        hasName: headerText.includes("Mariana"),
+        hasArtists: posterText.includes("LINIKER") && posterText.includes("BAIANASYSTEM") && posterText.includes("DJAVAN"),
+        urlCleaned: !window.location.search.includes("connected=true"),
+      };
+    });
+
+    if (!userACheck.hasName || !userACheck.hasArtists || !userACheck.urlCleaned) {
+      throw new Error(`Falha na validação da Conta A (Mariana): ${JSON.stringify(userACheck)}`);
+    }
+    console.log("✓ Conta A ('Mariana') conectada no mobile (390px): nome no header, artistas exclusivos no pôster e URL limpa.");
+    testStats.totalAssertions++;
+    await userAContext.close();
+
+    const userBContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const userBPage = await userBContext.newPage();
+    await userBPage.route("**/api/spotify/top-artists*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          authenticated: true,
+          userName: "Rafael",
+          artists: [
+            { id: "r1", name: "Gojira", genres: ["metal"], popularity: 81, images: [] },
+            { id: "r2", name: "Mastodon", genres: ["metal"], popularity: 78, images: [] },
+            { id: "r3", name: "Deftones", genres: ["metal", "rock"], popularity: 87, images: [] },
+          ],
+        }),
+      });
+    });
+
+    await userBPage.goto(`${baseUrl}/?connected=true`, { waitUntil: "domcontentloaded" });
+    await userBPage.waitForSelector("#festiq-poster-preview");
+    await userBPage.waitForTimeout(400);
+
+    const userBCheck = await userBPage.evaluate(() => {
+      const headerText = document.querySelector("header")?.textContent || "";
+      const posterText = document.querySelector("#festiq-poster-preview")?.textContent?.toUpperCase() || "";
+      return {
+        hasName: headerText.includes("Rafael"),
+        hasArtists: posterText.includes("GOJIRA") && posterText.includes("MASTODON") && posterText.includes("DEFTONES"),
+        noLeakFromA: !posterText.includes("LINIKER"),
+      };
+    });
+
+    if (!userBCheck.hasName || !userBCheck.hasArtists || !userBCheck.noLeakFromA) {
+      throw new Error(`Falha na validação da Conta B (Rafael): ${JSON.stringify(userBCheck)}`);
+    }
+    console.log("✓ Conta B ('Rafael') conectada: artistas exclusivos renderizados com isolamento total entre contas.");
+    testStats.totalAssertions++;
+    await userBContext.close();
+
+    // 5.3 Testa diagnóstico de restrição 403 em mobile compacto (360×800) sem overflow
+    const restrictedContext = await browser.newContext({
+      viewport: { width: 360, height: 800 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    const restrictedPage = await restrictedContext.newPage();
+    await restrictedPage.route("**/api/spotify/top-artists*", async (route) => {
+      await route.fulfill({
+        status: 403,
+        contentType: "application/json",
+        body: JSON.stringify({
+          authenticated: false,
+          errorCode: "SPOTIFY_USER_NOT_ALLOWED",
+          artists: [],
+          message: "Conta fora da lista User Management no modo de desenvolvimento.",
+        }),
+      });
+    });
+
+    await restrictedPage.goto(`${baseUrl}/?connected=true`, { waitUntil: "domcontentloaded" });
+    await restrictedPage.waitForSelector('[data-testid="spotify-auth-alert"]');
+
+    const alertAudit = await restrictedPage.evaluate(() => {
+      const alertEl = document.querySelector('[data-testid="spotify-auth-alert"]');
+      const isOverflowing = document.documentElement.scrollWidth > document.documentElement.clientWidth;
+      return {
+        hasAlert: !!alertEl,
+        text: alertEl?.textContent || "",
+        isOverflowing,
+      };
+    });
+
+    if (!alertAudit.hasAlert || !alertAudit.text.includes("User Management") || alertAudit.isOverflowing) {
+      throw new Error(`Falha no banner de diagnóstico 403 em 360px: ${JSON.stringify(alertAudit)}`);
+    }
+
+    const closeBtn = restrictedPage.getByRole("button", { name: /Fechar aviso/i });
+    await closeBtn.click();
+    await restrictedPage.waitForTimeout(200);
+    const alertStillVisible = await restrictedPage.locator('[data-testid="spotify-auth-alert"]').isVisible();
+    if (alertStillVisible) {
+      throw new Error("Banner de diagnóstico não fechou ao clicar no botão de fechar!");
+    }
+    console.log("✓ Banner de diagnóstico 403 validado em mobile 360px (sem overflow horizontal e fechamento interativo).");
+    testStats.totalAssertions++;
+    await restrictedContext.close();
+
+    // =========================================================================
     // RESULTADO FINAL
     // =========================================================================
     console.log("\n=================================================================");

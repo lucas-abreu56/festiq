@@ -114,14 +114,14 @@ export function filterArtistsByGenre(
   // 1. Filtra artistas do próprio usuário que combinam com o gênero, preservando a ordem original (mais escutados primeiro)
   let matched = artists.filter((a) => artistMatchesGenre(a, targetGenre));
 
-  // 2. Se o usuário tiver menos de 45 artistas desse gênero, complementa exclusivamente com artistas do mesmo gênero do mock
-  if (matched.length < 45) {
+  // 2. Somente se o usuário não tiver NENHUM artista desse gênero, utiliza os representantes do gênero no mock
+  if (matched.length === 0) {
     const fallbackFromMock = MOCK_ARTISTS.filter((a) => artistMatchesGenre(a, targetGenre));
-    matched = deduplicateArtists([...matched, ...fallbackFromMock]);
+    matched = deduplicateArtists(fallbackFromMock);
   }
 
-  // 3. Se ainda tiver menos de 45 artistas específicos deste gênero, cicla os próprios artistas do gênero
-  // JAMAIS importando o MOCK geral de outros gêneros
+  // 3. Se tiver menos de 45 artistas específicos deste gênero, cicla os próprios artistas encontrados
+  // JAMAIS misturando artistas do MOCK na conta do usuário
   if (matched.length < 45 && matched.length > 0) {
     const validPool = [...matched];
     let i = 0;
@@ -230,10 +230,19 @@ export function buildFestivalLineup({
     processed = sortArtistsByPopularity(processed);
   }
 
-  // Completa com o mock geral APENAS nos modos 'taste' ou 'popularity' quando houver menos de 30 artistas.
-  // No modo 'genre', a integridade do gênero já foi estritamente garantida por filterArtistsByGenre.
-  if (mode !== "genre" && processed.length < 30) {
-    processed = deduplicateArtists([...processed, ...MOCK_ARTISTS]);
+  // Se a conta conectada tiver menos de 45 artistas, cicla exclusivamente os artistas do próprio usuário,
+  // JAMAIS misturando artistas do MOCK_ARTISTS no cartaz pessoal do usuário.
+  if (mode !== "genre" && processed.length < 45 && processed.length > 0) {
+    const userPool = [...processed];
+    let i = 0;
+    while (processed.length < 45) {
+      const art = userPool[i % userPool.length];
+      processed.push({
+        ...art,
+        id: `${art.id}-repeat-${processed.length}`,
+      });
+      i++;
+    }
   }
 
   // Aplicação do Shuffle determinístico respeitando as regras do modo ativo

@@ -203,6 +203,7 @@ export default function HomePage() {
         {authNotice && (
           <div
             role="alert"
+            data-testid="spotify-auth-alert"
             className="mb-6 p-4 rounded-2xl bg-[#1E1E1E] border border-[#FF3EBA]/60 text-[#F7F6EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg"
           >
             <div className="flex items-start gap-3">
