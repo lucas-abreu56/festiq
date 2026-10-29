@@ -620,8 +620,15 @@ async function runFullSuite() {
       };
     });
 
-    if (!alertAudit.hasAlert || !alertAudit.text.includes("User Management") || alertAudit.isOverflowing) {
+    if (!alertAudit.hasAlert || !alertAudit.text.includes("Modo de Desenvolvimento") || alertAudit.isOverflowing) {
       throw new Error(`Falha no banner de diagnóstico 403 em 360px: ${JSON.stringify(alertAudit)}`);
+    }
+
+    // Ao detectar 403, o app abre o ConnectMusicModal com a mensagem e aba de playlist pronta
+    const closeModalBtn = restrictedPage.getByRole("button", { name: /Fechar modal de conexão/i });
+    if (await closeModalBtn.isVisible()) {
+      await closeModalBtn.click();
+      await restrictedPage.waitForTimeout(300);
     }
 
     const closeBtn = restrictedPage.getByRole("button", { name: /Fechar aviso/i });
@@ -634,6 +641,168 @@ async function runFullSuite() {
     console.log("✓ Banner de diagnóstico 403 validado em mobile 360px (sem overflow horizontal e fechamento interativo).");
     testStats.totalAssertions++;
     await restrictedContext.close();
+
+    // =========================================================================
+    // PILAR 6: TESTANDO CONEXÃO UNIVERSAL (PLAYLIST SPOTIFY + LAST.FM + MODAL)
+    // =========================================================================
+    console.log("\n-----------------------------------------------------------------");
+    console.log(" PILAR 6: TESTANDO CONEXÃO UNIVERSAL (PLAYLIST SPOTIFY E LAST.FM)");
+    console.log("-----------------------------------------------------------------");
+
+    // 6.1 Testa endpoint direto /api/spotify/playlist com playlist pública real do Spotify
+    const playlistTestRes = await new Promise((resolve, reject) => {
+      http
+        .get(`${baseUrl}/api/spotify/playlist?url=https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd`, (res) => {
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            try {
+              resolve({ statusCode: res.statusCode, body: JSON.parse(data) });
+            } catch (e) {
+              reject(e);
+            }
+          });
+        })
+        .on("error", reject);
+    });
+
+    if (
+      playlistTestRes.statusCode !== 200 ||
+      !playlistTestRes.body.authenticated ||
+      !Array.isArray(playlistTestRes.body.artists) ||
+      playlistTestRes.body.artists.length === 0
+    ) {
+      throw new Error(
+        `Rota /api/spotify/playlist falhou: status=${playlistTestRes.statusCode}, body=${JSON.stringify(
+          playlistTestRes.body
+        )}`
+      );
+    }
+    console.log(
+      `✓ Rota /api/spotify/playlist validada: '${playlistTestRes.body.playlistName}' com ${playlistTestRes.body.artists.length} artistas extraídos e ordenados.`
+    );
+    testStats.totalAssertions++;
+
+    // 6.2 Testa Modal de Conexão e carregamento de Playlist no navegador (Mobile 360px)
+    const modalContext = await browser.newContext({
+      viewport: { width: 360, height: 800 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    const modalPage = await modalContext.newPage();
+    await modalPage.goto(baseUrl, { waitUntil: "domcontentloaded" });
+    await modalPage.waitForSelector("#festiq-poster-preview");
+
+    // Abre o modal pelo botão "Conectar Música"
+    const btnOpenModal = modalPage.getByRole("button", { name: /Conectar Música/i });
+    await btnOpenModal.click();
+    await modalPage.waitForSelector('[role="dialog"]');
+
+    const modalAudit = await modalPage.evaluate(() => {
+      const dialog = document.querySelector('[role="dialog"]');
+      const isOverflowing = document.documentElement.scrollWidth > document.documentElement.clientWidth;
+      return { hasDialog: !!dialog, isOverflowing };
+    });
+
+    if (!modalAudit.hasDialog || modalAudit.isOverflowing) {
+      throw new Error(`Modal ConnectMusicModal causou overflow ou falhou na renderização: ${JSON.stringify(modalAudit)}`);
+    }
+    console.log("✓ ConnectMusicModal aberto e validado em mobile 360px sem overflow horizontal.");
+    testStats.totalAssertions++;
+
+    // Preenche input de playlist e submete
+    const playlistInput = modalPage.locator("#spotify-playlist-url");
+    await playlistInput.fill("https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd");
+    const btnSubmitPlaylist = modalPage.getByRole("button", { name: /Carregar Artistas no Pôster/i });
+    await btnSubmitPlaylist.click();
+
+    // Aguarda o modal fechar e o cabeçalho atualizar para Playlist: RapCaviar
+    await modalPage.waitForSelector('[role="dialog"]', { state: "detached", timeout: 15000 });
+    await modalPage.waitForTimeout(500);
+
+    const playlistHeaderCheck = await modalPage.evaluate(() => {
+      const headerText = document.querySelector("header")?.textContent || "";
+      const posterText = document.querySelector("#festiq-poster-preview")?.textContent || "";
+      return {
+        hasPlaylistBadge: headerText.includes("Playlist:") || headerText.includes("RapCaviar"),
+        posterHasArtists: posterText.length > 50,
+      };
+    });
+
+    if (!playlistHeaderCheck.hasPlaylistBadge || !playlistHeaderCheck.posterHasArtists) {
+      throw new Error(`Falha no lineup importado por playlist: ${JSON.stringify(playlistHeaderCheck)}`);
+    }
+    console.log("✓ Pôster atualizado com sucesso a partir de link de playlist pública do Spotify no mobile.");
+    testStats.totalAssertions++;
+
+    // 6.3 Testa Last.fm via Modal
+    const btnTrocar = modalPage.getByRole("button", { name: /Trocar/i });
+    await btnTrocar.click();
+    await modalPage.waitForSelector('[role="dialog"]');
+
+    // Clica na aba Last.fm
+    const tabLastFm = modalPage.getByRole("button", { name: /Last\.fm/i });
+    await tabLastFm.click();
+    await modalPage.waitForTimeout(200);
+
+    // Mock seguro da rota do Last.fm para teste E2E determinístico
+    await modalPage.route("**/api/lastfm/top-artists*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          authenticated: true,
+          source: "lastfm",
+          userName: "lucasdev",
+          artists: [
+            { id: "l1", name: "Tame Impala", genres: ["indie"], popularity: 88, images: [] },
+            { id: "l2", name: "Arctic Monkeys", genres: ["rock"], popularity: 90, images: [] },
+            { id: "l3", name: "The Strokes", genres: ["rock"], popularity: 86, images: [] },
+          ],
+        }),
+      });
+    });
+
+    const lastfmInput = modalPage.locator("#lastfm-username");
+    await lastfmInput.fill("lucasdev");
+    const btnSubmitLastfm = modalPage.getByRole("button", { name: /Conectar Last\.fm/i });
+    await btnSubmitLastfm.click();
+
+    await modalPage.waitForSelector('[role="dialog"]', { state: "detached", timeout: 10000 });
+    await modalPage.waitForTimeout(400);
+
+    const lastfmHeaderCheck = await modalPage.evaluate(() => {
+      const headerText = document.querySelector("header")?.textContent || "";
+      const posterText = document.querySelector("#festiq-poster-preview")?.textContent?.toUpperCase() || "";
+      return {
+        hasLastFmBadge: headerText.includes("@lucasdev"),
+        hasArtists: posterText.includes("TAME IMPALA") && posterText.includes("ARCTIC MONKEYS"),
+      };
+    });
+
+    if (!lastfmHeaderCheck.hasLastFmBadge || !lastfmHeaderCheck.hasArtists) {
+      throw new Error(`Falha na conexão por Last.fm: ${JSON.stringify(lastfmHeaderCheck)}`);
+    }
+    console.log("✓ Pôster e cabeçalho atualizados com sucesso via usuário do Last.fm (@lucasdev).");
+    testStats.totalAssertions++;
+
+    // Desconecta e volta ao modo padrão
+    const btnDisconnect = modalPage.getByTitle(/Desconectar música/i);
+    await btnDisconnect.click();
+    await modalPage.waitForTimeout(300);
+
+    const disconnectedCheck = await modalPage.evaluate(() => {
+      const btn = document.querySelector("header button");
+      return btn?.textContent?.includes("Conectar") || false;
+    });
+
+    if (!disconnectedCheck) {
+      throw new Error("Falha ao desconectar e retornar ao modo de demonstração!");
+    }
+    console.log("✓ Desconexão concluída e retorno ao estado padrão.");
+    testStats.totalAssertions++;
+
+    await modalContext.close();
 
     // =========================================================================
     // RESULTADO FINAL
