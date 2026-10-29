@@ -16,6 +16,10 @@ import { ExportBar } from "@/components/controls/ExportBar";
 import { CurvedLoop } from "@/components/reactbits/CurvedLoop";
 import { CircularCarousel } from "@/components/reactbits/CircularCarousel";
 import {
+  ConnectMusicModal,
+  MusicSourceType,
+} from "@/components/controls/ConnectMusicModal";
+import {
   Music,
   LogOut,
   CheckCircle,
@@ -24,7 +28,11 @@ import {
   RefreshCw,
   AlertTriangle,
   X,
+  ListMusic,
+  Radio,
 } from "lucide-react";
+
+const STORAGE_KEY = "festiq_session_v1";
 
 export default function HomePage() {
   const [themeId, setThemeId] = useState<FestivalThemeId>("lolla");
@@ -36,15 +44,35 @@ export default function HomePage() {
   const [festivalName, setFestivalName] = useState<string>("");
   const [shuffleSeed, setShuffleSeed] = useState<number>(0);
 
-  // Estado de Autenticação e Dados do Spotify
+  // Estado de Autenticação e Dados de Música
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [musicSource, setMusicSource] = useState<MusicSourceType | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [spotifyArtists, setSpotifyArtists] = useState<SpotifyArtist[]>([]);
   const [, setIsLoadingData] = useState<boolean>(false);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
 
-  // Consulta de artistas na API do Spotify (sem sobrescrever o nome padrão FESTIQ STUDIO)
+  // Controle do Modal de Conexão
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
+  const [modalInitialTab, setModalInitialTab] = useState<"playlist" | "lastfm" | "oauth">("playlist");
+
+  // Consulta de artistas na API do Spotify OAuth
   const fetchSpotifyData = useCallback(async (range: TimeRange) => {
+    // Se o usuário estiver conectado via Playlist ou Last.fm, não substitui pela API do Spotify
+    if (typeof window !== "undefined") {
+      try {
+        const stored = sessionStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.source === "spotify_playlist" || parsed.source === "lastfm") {
+            return;
+          }
+        }
+      } catch {
+        // Ignora erro no parse do storage
+      }
+    }
+
     setIsLoadingData(true);
     const params =
       typeof window !== "undefined"
@@ -59,8 +87,10 @@ export default function HomePage() {
 
     if (authError) {
       setAuthNotice(
-        "Não foi possível concluir a autorização com o Spotify. Tente conectar novamente ou escolha outra conta."
+        "Não foi possível concluir a autorização com o Spotify. Você pode conectar pela sua playlist do Spotify ou pelo Last.fm."
       );
+      setModalInitialTab("playlist");
+      setIsConnectModalOpen(true);
     }
 
     try {
@@ -71,17 +101,21 @@ export default function HomePage() {
 
       if (data.authenticated) {
         setIsAuthenticated(true);
+        setMusicSource("spotify_oauth");
         setSpotifyArtists(Array.isArray(data.artists) ? data.artists : []);
         setUserName(data.userName || "Conectado");
         setAuthNotice(null);
       } else {
         setIsAuthenticated(false);
+        setMusicSource(null);
         setSpotifyArtists([]);
 
         if (data.errorCode === "SPOTIFY_USER_NOT_ALLOWED") {
           setAuthNotice(
-            "A sua conta do Spotify conectou, mas o aplicativo ainda está em Modo de Desenvolvimento na Spotify API. Nesse modo, o Spotify libera os artistas apenas para e-mails cadastrados na aba User Management do painel developer.spotify.com/dashboard (ou após aprovação do Extended Quota Mode)."
+            "O seu login no Spotify conectou, mas o app está em Modo de Desenvolvimento na API. Você pode carregar seus artistas instantaneamente pela aba Playlist do Spotify ou pelo Last.fm logo abaixo."
           );
+          setModalInitialTab("playlist");
+          setIsConnectModalOpen(true);
         } else if (justConnected && data.message) {
           setAuthNotice(data.message);
         }
@@ -94,9 +128,106 @@ export default function HomePage() {
     }
   }, []);
 
+  // Inicialização com restauração de sessão do sessionStorage
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = sessionStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.authenticated && Array.isArray(parsed.artists) && parsed.artists.length > 0) {
+            setIsAuthenticated(true);
+            setMusicSource(parsed.source || "spotify_playlist");
+            setUserName(parsed.userName || "");
+            setSpotifyArtists(parsed.artists);
+            return;
+          }
+        }
+      } catch {
+        // Fallback para Spotify OAuth
+      }
+    }
     fetchSpotifyData(timeRange);
   }, [fetchSpotifyData, timeRange]);
+
+  // Sincronização de período com Last.fm quando ativo
+  useEffect(() => {
+    if (musicSource === "lastfm" && userName) {
+      setIsLoadingData(true);
+      fetch(`/api/lastfm/top-artists?user=${encodeURIComponent(userName)}&time_range=${timeRange}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.authenticated && Array.isArray(data.artists) && data.artists.length > 0) {
+            setSpotifyArtists(data.artists);
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                  authenticated: true,
+                  source: "lastfm",
+                  userName,
+                  artists: data.artists,
+                })
+              );
+            }
+          }
+        })
+        .catch((err) => console.warn("Erro ao sincronizar Last.fm:", err))
+        .finally(() => setIsLoadingData(false));
+    }
+  }, [musicSource, userName, timeRange]);
+
+  // Manipuladores de conexão de novas fontes
+  function handleConnectPlaylist(artists: SpotifyArtist[], playlistName: string) {
+    setIsAuthenticated(true);
+    setMusicSource("spotify_playlist");
+    setUserName(playlistName);
+    setSpotifyArtists(artists);
+    setAuthNotice(null);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          authenticated: true,
+          source: "spotify_playlist",
+          userName: playlistName,
+          artists,
+        })
+      );
+    }
+  }
+
+  function handleConnectLastFm(artists: SpotifyArtist[], username: string) {
+    setIsAuthenticated(true);
+    setMusicSource("lastfm");
+    setUserName(username);
+    setSpotifyArtists(artists);
+    setAuthNotice(null);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          authenticated: true,
+          source: "lastfm",
+          userName: username,
+          artists,
+        })
+      );
+    }
+  }
+
+  function handleDisconnect() {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+    setIsAuthenticated(false);
+    setMusicSource(null);
+    setUserName("");
+    setSpotifyArtists([]);
+    if (musicSource === "spotify_oauth") {
+      window.location.href = "/api/auth/logout";
+    }
+  }
 
   // Artistas base (do Spotify autenticado ou mock padrão)
   const activeArtists = useMemo(() => {
@@ -158,35 +289,56 @@ export default function HomePage() {
             {isAuthenticated ? (
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-[#1E1E1E] border border-[#CEFF00]/50 rounded-full text-[11px] sm:text-xs font-mono text-[#CEFF00] font-bold whitespace-nowrap">
-                  <CheckCircle className="w-3.5 h-3.5 text-[#CEFF00] flex-shrink-0" />
-                  <span className="hidden sm:inline">Spotify:</span>
-                  <span>{userName || "Conectado"}</span>
+                  {musicSource === "lastfm" ? (
+                    <Radio className="w-3.5 h-3.5 text-[#CEFF00] flex-shrink-0" />
+                  ) : musicSource === "spotify_playlist" ? (
+                    <ListMusic className="w-3.5 h-3.5 text-[#CEFF00] flex-shrink-0" />
+                  ) : (
+                    <CheckCircle className="w-3.5 h-3.5 text-[#CEFF00] flex-shrink-0" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {musicSource === "lastfm"
+                      ? "Last.fm:"
+                      : musicSource === "spotify_playlist"
+                      ? "Playlist:"
+                      : "Spotify:"}
+                  </span>
+                  <span>{musicSource === "lastfm" ? `@${userName}` : userName || "Conectado"}</span>
                 </span>
-                <a
-                  href="/api/auth/login"
-                  className="p-2 sm:px-2.5 sm:py-1.5 text-[#A3A3A3] hover:text-[#CEFF00] rounded-xl hover:bg-[#1E1E1E] border border-transparent hover:border-[#282828] transition-colors text-xs font-mono flex items-center gap-1.5 whitespace-nowrap"
-                  title="Conectar outra conta do Spotify"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalInitialTab("playlist");
+                    setIsConnectModalOpen(true);
+                  }}
+                  className="p-2 sm:px-2.5 sm:py-1.5 text-[#A3A3A3] hover:text-[#CEFF00] rounded-xl hover:bg-[#1E1E1E] border border-transparent hover:border-[#282828] transition-colors text-xs font-mono flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                  title="Trocar fonte de música"
                 >
                   <RefreshCw className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="hidden md:inline">Trocar conta</span>
-                </a>
-                <a
-                  href="/api/auth/logout"
-                  className="p-2 text-[#A3A3A3] hover:text-white rounded-xl hover:bg-[#1E1E1E] border border-transparent hover:border-[#282828] transition-colors text-xs font-mono flex items-center gap-1"
-                  title="Desconectar Spotify"
+                  <span className="hidden md:inline">Trocar</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDisconnect}
+                  className="p-2 text-[#A3A3A3] hover:text-white rounded-xl hover:bg-[#1E1E1E] border border-transparent hover:border-[#282828] transition-colors text-xs font-mono flex items-center gap-1 cursor-pointer"
+                  title="Desconectar música"
                 >
                   <LogOut className="w-4 h-4" />
-                </a>
+                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <a
-                  href="/api/auth/login"
-                  className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 bg-[#CEFF00] hover:bg-[#b8e600] text-[#141414] font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all shadow-[0_6px_18px_rgba(206,255,0,0.25)] active:scale-[0.97] whitespace-nowrap"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalInitialTab("playlist");
+                    setIsConnectModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 bg-[#CEFF00] hover:bg-[#b8e600] text-[#141414] font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all shadow-[0_6px_18px_rgba(206,255,0,0.25)] active:scale-[0.97] whitespace-nowrap cursor-pointer"
                 >
                   <Music className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>Conectar Spotify</span>
-                </a>
+                  <span>Conectar Música</span>
+                </button>
               </div>
             )}
           </div>
@@ -213,17 +365,21 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-              <a
-                href="/api/auth/login"
-                className="px-3 py-1.5 rounded-lg bg-[#CEFF00] hover:bg-[#b8e600] text-[#141414] font-display font-black text-[11px] uppercase tracking-wider transition-colors whitespace-nowrap"
+              <button
+                type="button"
+                onClick={() => {
+                  setModalInitialTab("playlist");
+                  setIsConnectModalOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-[#CEFF00] hover:bg-[#b8e600] text-[#141414] font-display font-black text-[11px] uppercase tracking-wider transition-colors whitespace-nowrap cursor-pointer"
               >
-                Trocar Conta
-              </a>
+                Conectar Playlist ou Last.fm
+              </button>
               <button
                 type="button"
                 onClick={() => setAuthNotice(null)}
                 aria-label="Fechar aviso"
-                className="p-1.5 rounded-lg text-[#A3A3A3] hover:text-white hover:bg-[#282828] transition-colors"
+                className="p-1.5 rounded-lg text-[#A3A3A3] hover:text-white hover:bg-[#282828] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -348,6 +504,16 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* 5. Modal de Conexão Musical (Playlist Spotify, Last.fm, OAuth) */}
+      <ConnectMusicModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        onConnectPlaylist={handleConnectPlaylist}
+        onConnectLastFm={handleConnectLastFm}
+        initialTab={modalInitialTab}
+        noticeMessage={authNotice}
+      />
     </div>
   );
 }
